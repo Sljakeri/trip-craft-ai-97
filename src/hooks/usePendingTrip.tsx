@@ -9,7 +9,7 @@ interface FormData {
   dateTo?: string;
   travelers?: { adults: number; kids: number };
   budget?: string;
-  transport?: string[];
+  transport?: string | string[];
   crowdPreference?: string;
 }
 
