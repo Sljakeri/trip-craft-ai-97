@@ -7,6 +7,7 @@ declare global {
       region: string;
       render: string;
       stylesheets: string[];
+      color?: string;
     };
   }
 }
@@ -18,6 +19,7 @@ const ChatbotWidget = () => {
       ID: "7293lniv2pgm1czk",
       region: 'eu',
       render: 'popup', // popup mode for bottom-right corner
+      color: 'light', // Use light theme
       stylesheets: [
         "https://vg-bunny-cdn.b-cdn.net/vg_live_build/styles.css",
       ],
