@@ -38,7 +38,7 @@ const App = () => (
             <Route path="/premium" element={<Premium />} />
             <Route path="/support" element={<Support />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
