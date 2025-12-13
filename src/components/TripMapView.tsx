@@ -112,7 +112,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const diningMarkersRef = useRef<L.Marker[]>([]);
 
-  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+  const [currentDayIndex, setCurrentDayIndex] = useState<number | 'all'>(0);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -128,8 +128,11 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
   // Get days data
   const days = data.daily_itinerary || [];
-  const currentDay = days[currentDayIndex];
-  const currentActivity = currentDay?.activities?.[currentActivityIndex];
+  const currentDay = currentDayIndex === 'all' ? null : days[currentDayIndex];
+  const allActivities = days.flatMap((day, dayIdx) => 
+    day.activities.map((activity, actIdx) => ({ ...activity, dayNumber: day.day_number, dayIndex: dayIdx, activityIndex: actIdx }))
+  );
+  
 
   // Get logistics info
   const waterInfo = isNewFormat 
@@ -211,15 +214,24 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     return [48.8566, 2.3522]; // Default to Paris
   }, [data, days, isNewFormat]);
 
-  // Draw markers for current day
+  // Get current activity based on view mode
+  const currentActivity = currentDayIndex === 'all' 
+    ? allActivities[currentActivityIndex] 
+    : currentDay?.activities?.[currentActivityIndex];
+
+  // Draw markers for current day or all days
   const drawDayMarkers = useCallback(() => {
-    if (!mapRef.current || !routeLayerGroupRef.current || !currentDay) return;
+    if (!mapRef.current || !routeLayerGroupRef.current) return;
 
     routeLayerGroupRef.current.clearLayers();
     diningMarkersRef.current = [];
 
-    // Add markers for each activity in the current day
-    currentDay.activities.forEach((activity, index) => {
+    const activitiesToDraw = currentDayIndex === 'all' ? allActivities : currentDay?.activities || [];
+    
+    if (activitiesToDraw.length === 0) return;
+
+    // Add markers for each activity
+    activitiesToDraw.forEach((activity, index) => {
       const isActive = index === currentActivityIndex;
       const coords: [number, number] = [activity.coordinates.lat, activity.coordinates.lon];
       
@@ -228,9 +240,14 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       else if (activity.type === 'Landmark') bgClass = 'bg-primary';
       if (isActive) bgClass = 'bg-green-500';
 
+      // For "all" view, show day number in marker
+      const markerLabel = currentDayIndex === 'all' 
+        ? `D${(activity as typeof allActivities[0]).dayNumber}` 
+        : `${index + 1}`;
+
       const icon = L.divIcon({
         className: 'custom-div-icon',
-        html: `<div class="marker-pin ${bgClass}" style="width:${isActive ? 36 : 30}px;height:${isActive ? 36 : 30}px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:${isActive ? 15 : 13}px;box-shadow:0 3px 8px rgba(0,0,0,0.3);transition:all 0.2s;">${index + 1}</div>`,
+        html: `<div class="marker-pin ${bgClass}" style="width:${isActive ? 36 : 30}px;height:${isActive ? 36 : 30}px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:${isActive ? 12 : 10}px;box-shadow:0 3px 8px rgba(0,0,0,0.3);transition:all 0.2s;">${markerLabel}</div>`,
         iconSize: [isActive ? 36 : 30, isActive ? 36 : 30],
         iconAnchor: [isActive ? 18 : 15, isActive ? 36 : 30],
         popupAnchor: [0, -32]
@@ -245,7 +262,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
     });
 
-    // Draw dining spots for current activity only (when zoomed in)
+    // Draw dining spots for current activity only
     if (currentActivity?.nearby_context?.dining_spots) {
       currentActivity.nearby_context.dining_spots.forEach((spot) => {
         const coords: [number, number] = [spot.coordinates.lat, spot.coordinates.lon];
@@ -266,8 +283,21 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
     }
 
-    // Draw routes between activities
-    if (currentDay.activities.length > 1) {
+    // Draw routes - for all view, draw separate routes per day with different colors
+    if (currentDayIndex === 'all') {
+      const dayColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+      days.forEach((day, dayIdx) => {
+        if (day.activities.length > 1) {
+          const coords = day.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+          L.polyline(coords, {
+            color: dayColors[dayIdx % dayColors.length],
+            weight: 3,
+            opacity: 0.6,
+            dashArray: '8, 8'
+          }).addTo(routeLayerGroupRef.current!);
+        }
+      });
+    } else if (currentDay && currentDay.activities.length > 1) {
       const coords = currentDay.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
       L.polyline(coords, {
         color: '#4f46e5',
@@ -278,13 +308,11 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     }
 
     // Fit bounds to show all activities
-    if (currentDay.activities.length > 0) {
-      const bounds = L.latLngBounds(
-        currentDay.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
-      );
-      mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
-    }
-  }, [currentDay, currentActivityIndex, currentActivity]);
+    const bounds = L.latLngBounds(
+      activitiesToDraw.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
+    );
+    mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: currentDayIndex === 'all' ? 12 : 15 });
+  }, [currentDayIndex, currentDay, currentActivityIndex, currentActivity, allActivities, days]);
 
   // Focus on current activity
   const focusOnActivity = useCallback(() => {
@@ -325,26 +353,38 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
   // Navigation handlers
   const handleNextActivity = () => {
+    if (currentDayIndex === 'all') {
+      if (currentActivityIndex < allActivities.length - 1) {
+        setCurrentActivityIndex(prev => prev + 1);
+      }
+      return;
+    }
     if (!currentDay) return;
     if (currentActivityIndex < currentDay.activities.length - 1) {
       setCurrentActivityIndex(prev => prev + 1);
     } else if (currentDayIndex < days.length - 1) {
-      setCurrentDayIndex(prev => prev + 1);
+      setCurrentDayIndex(prev => (prev as number) + 1);
       setCurrentActivityIndex(0);
     }
   };
 
   const handlePrevActivity = () => {
+    if (currentDayIndex === 'all') {
+      if (currentActivityIndex > 0) {
+        setCurrentActivityIndex(prev => prev - 1);
+      }
+      return;
+    }
     if (currentActivityIndex > 0) {
       setCurrentActivityIndex(prev => prev - 1);
-    } else if (currentDayIndex > 0) {
-      setCurrentDayIndex(prev => prev - 1);
+    } else if (typeof currentDayIndex === 'number' && currentDayIndex > 0) {
+      setCurrentDayIndex(prev => (prev as number) - 1);
       const prevDay = days[currentDayIndex - 1];
       setCurrentActivityIndex(prevDay.activities.length - 1);
     }
   };
 
-  const handleDayChange = (dayIndex: number) => {
+  const handleDayChange = (dayIndex: number | 'all') => {
     setCurrentDayIndex(dayIndex);
     setCurrentActivityIndex(0);
   };
@@ -401,25 +441,46 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
             {/* Day Tabs */}
             {days.length > 0 && (
-              <div className="flex gap-1 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+              <div className="flex flex-wrap gap-1 mb-3">
+                {/* All Days Button */}
+                <button
+                  onClick={() => handleDayChange('all')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                    currentDayIndex === 'all'
+                      ? 'bg-primary text-primary-foreground shadow'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  All
+                </button>
+                {/* Individual Day Buttons */}
                 {days.map((day, idx) => (
                   <button
                     key={day.day_number}
                     onClick={() => handleDayChange(idx)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                       idx === currentDayIndex
                         ? 'bg-primary text-primary-foreground shadow'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
-                    Day {day.day_number}
+                    D{day.day_number}
                   </button>
                 ))}
               </div>
             )}
 
             {/* Current Day Info */}
-            {currentDay && (
+            {currentDayIndex === 'all' ? (
+              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground bg-muted px-3 py-2 rounded-lg">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Full Itinerary</span>
+                <span className="text-border mx-1">|</span>
+                <span>{allActivities.length} activities</span>
+                <span className="text-border mx-1">|</span>
+                <span>{days.length} days</span>
+              </div>
+            ) : currentDay && (
               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground bg-muted px-3 py-2 rounded-lg">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>{formatDate(currentDay.date)}</span>
@@ -467,7 +528,13 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
               <div className="flex-1 overflow-y-auto px-4 py-3">
                 {/* Progress */}
                 <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2">
-                  <span>Activity <span className="text-primary">{currentActivityIndex + 1}</span> / {currentDay?.activities.length}</span>
+                  <span>
+                    {currentDayIndex === 'all' ? (
+                      <>Activity <span className="text-primary">{currentActivityIndex + 1}</span> / {allActivities.length} (Day {(currentActivity as typeof allActivities[0]).dayNumber})</>
+                    ) : (
+                      <>Activity <span className="text-primary">{currentActivityIndex + 1}</span> / {currentDay?.activities.length}</>
+                    )}
+                  </span>
                   <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${getCrowdLevel(currentActivity.estimated_crowd_scores).color}`}>
                     Crowd: {getCrowdLevel(currentActivity.estimated_crowd_scores).label}
                   </span>

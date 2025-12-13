@@ -67,7 +67,7 @@ const categoryLabels = {
 interface ExpensePanelProps {
   currency?: string;
   dailyItinerary?: DayItinerary[];
-  currentDayIndex?: number;
+  currentDayIndex?: number | 'all';
 }
 
 const ExpensePanel: React.FC<ExpensePanelProps> = ({ 
@@ -78,8 +78,8 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [viewMode, setViewMode] = useState<'all' | 'day'>('day');
-  const [selectedDayIndex, setSelectedDayIndex] = useState(currentDayIndex);
+  const [viewMode, setViewMode] = useState<'all' | 'day'>(currentDayIndex === 'all' ? 'all' : 'day');
+  const [selectedDayIndex, setSelectedDayIndex] = useState(typeof currentDayIndex === 'number' ? currentDayIndex : 0);
   const [newExpense, setNewExpense] = useState({
     category: 'flight' as Expense['category'],
     name: '',
