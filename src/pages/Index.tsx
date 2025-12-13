@@ -1,65 +1,100 @@
-import { useState } from 'react';
-import { TravelForm } from '@/components/TravelForm';
-import { LoadingOverlay } from '@/components/LoadingOverlay';
-import { TripResults } from '@/components/TripResults';
-import { Plane, Globe, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Plane, Train, Bus, Car, Ship, Loader2 } from "lucide-react";
+import Layout from "@/components/Layout";
+import CityAutocomplete from "@/components/CityAutocomplete";
+import TransportButton from "@/components/TransportButton";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import TripResults from "@/components/TripResults";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 interface TripData {
-  destination_summary?: string;
-  accommodation?: Array<{ name: string; price: string; reason: string }>;
-  dining?: Array<{ name: string; cuisine?: string; priceRange?: string; description?: string }>;
-  activities?: Array<{ name: string; duration?: string; description?: string; location?: string }>;
-  logistics?: {
-    weather?: string;
-    tips?: string[] | string;
-    transportation?: string;
-    currency?: string;
-  };
+  departureLocation: string;
+  destinationLocation: string;
+  startDate: string;
+  endDate: string;
+  numberOfPeople: number;
+  budgetUSD: number | null;
+  preferredTransport: string[];
+  travelDurationDays: number | null;
 }
 
+const transportOptions = [
+  { type: "plane", icon: Plane, label: "Plane" },
+  { type: "train", icon: Train, label: "Train" },
+  { type: "bus", icon: Bus, label: "Bus" },
+  { type: "car", icon: Car, label: "Car Rental" },
+  { type: "ship", icon: Ship, label: "Cruise/Ship" },
+];
+
 const Index = () => {
+  const [departure, setDeparture] = useState("");
+  const [destination, setDestination] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [people, setPeople] = useState(1);
+  const [budget, setBudget] = useState("");
+  const [selectedTransport, setSelectedTransport] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [tripData, setTripData] = useState<TripData | null>(null);
-  const [destination, setDestination] = useState('');
+  const [tripResults, setTripResults] = useState<any>(null);
   const { toast } = useToast();
 
-  const handleSubmit = async (formData: {
-    destination: string;
-    dates: string;
-    budget: string;
-    interests: string;
-  }) => {
+  const toggleTransport = (type: string) => {
+    setSelectedTransport(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!destination || !departure) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both a destination and departure location!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const tripData: TripData = {
+      departureLocation: departure,
+      destinationLocation: destination,
+      startDate: dateFrom,
+      endDate: dateTo,
+      numberOfPeople: people,
+      budgetUSD: budget ? parseFloat(budget) : null,
+      preferredTransport: selectedTransport,
+      travelDurationDays: null,
+    };
+
+    console.log("Trip Data JSON:", JSON.stringify(tripData, null, 2));
+
     setIsLoading(true);
-    setDestination(formData.destination);
+    setTripResults(null);
 
     try {
-      const response = await fetch('https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45', {
-        method: 'POST',
+      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          body: {
-            destination: formData.destination,
-            dates: formData.dates,
-            budget: formData.budget,
-            interests: formData.interests,
-          },
-        }),
+        body: JSON.stringify({ body: tripData }),
       });
 
       if (!response.ok) {
-        throw new Error('Service temporarily unavailable');
+        throw new Error("Service unavailable");
       }
 
       const data = await response.json();
-      setTripData(data);
+      setTripResults(data);
     } catch (error) {
-      console.error('Error fetching trip data:', error);
+      console.error("Error:", error);
       toast({
         title: "Service Overloaded",
-        description: "Our AI travel planner is currently busy. Please try again in a moment.",
+        description: "Our AI planners are busy. Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
@@ -67,107 +102,139 @@ const Index = () => {
     }
   };
 
-  const handleReset = () => {
-    setTripData(null);
-    setDestination('');
+  const handleNewTrip = () => {
+    setTripResults(null);
+    setDeparture("");
+    setDestination("");
+    setDateFrom("");
+    setDateTo("");
+    setPeople(1);
+    setBudget("");
+    setSelectedTransport([]);
   };
 
-  if (isLoading) {
-    return <LoadingOverlay />;
-  }
-
-  if (tripData) {
-    return <TripResults data={tripData} destination={destination} onReset={handleReset} />;
+  if (tripResults) {
+    return (
+      <Layout>
+        <TripResults data={tripResults} onNewTrip={handleNewTrip} />
+      </Layout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg gradient-hero flex items-center justify-center shadow-soft">
-              <Plane className="w-5 h-5 text-primary-foreground" />
+    <Layout>
+      {isLoading && <LoadingOverlay />}
+      
+      <div className="hero-container">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          Plan Your Perfect Trip with AI
+        </h1>
+        <p className="text-secondary mb-8">
+          Select your preferences and let our algorithms do the rest.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="input-group min-w-[200px]">
+              <label htmlFor="departure">From where?</label>
+              <CityAutocomplete
+                id="departure"
+                value={departure}
+                onChange={setDeparture}
+                placeholder="e.g. London, Chicago..."
+              />
             </div>
-            <span className="font-display font-semibold text-xl text-foreground">TravelAI</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              How it works
-            </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Destinations
-            </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </a>
-          </nav>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <main className="pt-16">
-        <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden">
-          {/* Background decorations */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-coral/10 blur-3xl" />
-            <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-ocean/10 blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-sunset/5 blur-3xl" />
-          </div>
-
-          <div className="relative container mx-auto px-4 py-16 md:py-24">
-            {/* Hero text */}
-            <div className="text-center mb-12 md:mb-16 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-                <Sparkles className="w-4 h-4" />
-                AI-Powered Trip Planning
-              </div>
-              
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-foreground leading-tight">
-                Your Perfect Trip,{' '}
-                <span className="text-gradient">Crafted by AI</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-body">
-                Tell us your dream destination and preferences. Our AI will curate a 
-                personalized itinerary with the best hotels, restaurants, and experiences.
-              </p>
-
-              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Globe className="w-4 h-4 text-primary" />
-                  100+ Destinations
-                </span>
-                <span className="w-1 h-1 rounded-full bg-border" />
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-sunset" />
-                  Personalized Plans
-                </span>
-              </div>
+            
+            <div className="input-group min-w-[200px]">
+              <label htmlFor="destination">Where to go?</label>
+              <CityAutocomplete
+                id="destination"
+                value={destination}
+                onChange={setDestination}
+                placeholder="e.g. Tokyo, Paris..."
+              />
             </div>
-
-            {/* Form */}
-            <TravelForm onSubmit={handleSubmit} isLoading={isLoading} />
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/30">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Plane className="w-5 h-5 text-primary" />
-              <span className="font-display font-medium text-foreground">TravelAI</span>
+            
+            <div className="input-group min-w-[140px]">
+              <label htmlFor="date-from">From</label>
+              <Input
+                id="date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full px-3 py-3 border-2 border-border rounded-lg"
+              />
             </div>
-            <p className="text-sm text-muted-foreground">
-              © 2024 TravelAI. Crafting unforgettable journeys.
-            </p>
+            
+            <div className="input-group min-w-[140px]">
+              <label htmlFor="date-to">To</label>
+              <Input
+                id="date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full px-3 py-3 border-2 border-border rounded-lg"
+              />
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+
+          <div className="form-row">
+            <div className="input-group min-w-[140px]">
+              <label htmlFor="people">Travelers</label>
+              <Input
+                id="people"
+                type="number"
+                min={1}
+                value={people}
+                onChange={(e) => setPeople(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-3 border-2 border-border rounded-lg"
+              />
+            </div>
+            
+            <div className="input-group min-w-[140px]">
+              <label htmlFor="budget">Budget ($)</label>
+              <Input
+                id="budget"
+                type="number"
+                placeholder="5000"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                className="w-full px-3 py-3 border-2 border-border rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div className="text-left my-5">
+            <label className="text-sm font-semibold mb-2.5 block text-foreground">
+              Preferred Transport (Select Multiple)
+            </label>
+            <div className="flex gap-2.5 flex-wrap mt-2.5">
+              {transportOptions.map((transport) => (
+                <TransportButton
+                  key={transport.type}
+                  type={transport.type}
+                  icon={transport.icon}
+                  label={transport.label}
+                  selected={selectedTransport.includes(transport.type)}
+                  onToggle={toggleTransport}
+                />
+              ))}
+            </div>
+          </div>
+
+          <button type="submit" className="confirm-btn" disabled={isLoading}>
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Generating...
+              </span>
+            ) : (
+              "GENERATE ITINERARY"
+            )}
+          </button>
+        </form>
+      </div>
+    </Layout>
   );
 };
 
