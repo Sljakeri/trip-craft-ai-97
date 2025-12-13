@@ -6,34 +6,34 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 4%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 240 10% 4%;
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 4%;
-    
+
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 240 5% 96%;
     --secondary-foreground: 240 6% 10%;
-    
+
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;
-    
+
     --accent: 243 75% 59%;
     --accent-foreground: 0 0% 100%;
-    
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 240 6% 90%;
     --input: 240 6% 90%;
     --ring: 243 75% 59%;
-    
+
     --radius: 0.5rem;
-    
+
     --neutral-gray: 240 4% 46%;
 
     --sidebar-background: 0 0% 98%;
@@ -47,30 +47,30 @@
   }
 
   .dark {
-    --background: 240 10% 4%;
+    --background: 0 0% 100%;
     --foreground: 0 0% 98%;
-    
+
     --card: 240 10% 8%;
     --card-foreground: 0 0% 98%;
-    
+
     --popover: 240 10% 8%;
     --popover-foreground: 0 0% 98%;
-    
+
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 98%;
-    
+
     --muted: 240 4% 16%;
     --muted-foreground: 240 5% 65%;
-    
+
     --accent: 243 75% 59%;
     --accent-foreground: 0 0% 100%;
-    
+
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 240 4% 16%;
     --input: 240 4% 16%;
     --ring: 243 75% 59%;
@@ -90,10 +90,10 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   }
 }
 
@@ -101,97 +101,97 @@
   .hero-container {
     @apply bg-card p-8 md:p-12 rounded-2xl shadow-lg w-full max-w-4xl text-center border border-muted;
   }
-  
+
   .auth-container {
     @apply max-w-md;
   }
-  
+
   .content-wrapper {
     @apply w-full max-w-6xl px-8 text-center;
   }
-  
+
   .input-group {
     @apply flex flex-col relative flex-1;
   }
-  
+
   .input-group label {
     @apply text-sm font-semibold mb-1.5 text-foreground;
   }
-  
+
   .form-row {
     @apply flex gap-4 mb-4 text-left flex-wrap;
   }
-  
+
   .transport-btn {
     @apply flex-1 min-w-[100px] px-4 py-3 border-2 border-border bg-card text-foreground rounded-lg cursor-pointer font-semibold transition-all duration-300 flex items-center justify-center gap-2;
   }
-  
+
   .transport-btn:hover {
     @apply border-secondary text-secondary;
   }
-  
+
   .transport-btn.selected {
     @apply text-white border-secondary shadow-lg;
     background: linear-gradient(45deg, hsl(var(--secondary)), hsl(195 86% 41%));
   }
-  
+
   .confirm-btn {
     @apply w-full py-4 text-primary-foreground border-none rounded-lg text-lg font-bold cursor-pointer mt-5 transition-all duration-300 hover:shadow-xl;
     background: linear-gradient(90deg, hsl(var(--primary)), hsl(222 33% 21%));
   }
-  
+
   .confirm-btn:hover {
     background: linear-gradient(90deg, hsl(222 33% 21%), hsl(var(--primary)));
   }
-  
+
   .info-grid {
     @apply grid grid-cols-1 md:grid-cols-3 gap-8 mt-12;
   }
-  
+
   .info-card {
     @apply bg-card p-8 rounded-xl shadow-md text-center border border-muted transition-shadow duration-300 hover:shadow-lg;
   }
-  
+
   .pricing-grid {
     @apply flex justify-center gap-8 flex-wrap mt-12 items-center;
   }
-  
+
   .pricing-card {
     @apply bg-card p-8 rounded-2xl shadow-lg w-[300px] text-center relative border border-border;
   }
-  
+
   .pricing-card.popular {
     @apply scale-105 border-2 border-secondary shadow-xl z-10;
   }
-  
+
   .pricing-card .badge {
     @apply absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-white px-4 py-1 rounded-full text-sm font-bold;
   }
-  
+
   .pricing-card .price {
     @apply text-4xl font-extrabold text-foreground my-4;
   }
-  
+
   .pricing-card .price span {
     @apply text-base font-normal text-muted-foreground;
   }
-  
+
   .settings-section {
     @apply text-left mt-5;
   }
-  
+
   .settings-section h3 {
     @apply mb-4 text-secondary;
   }
-  
+
   .setting-item {
     @apply flex justify-between items-center py-2.5;
   }
-  
+
   .autocomplete-items {
     @apply absolute border border-border border-t-0 z-50 top-full left-0 right-0 rounded-b-lg bg-card max-h-40 overflow-y-auto list-none p-0 m-0;
   }
-  
+
   .autocomplete-items li {
     @apply px-3 py-2.5 cursor-pointer bg-card border-b border-border hover:bg-muted hover:text-secondary;
   }
