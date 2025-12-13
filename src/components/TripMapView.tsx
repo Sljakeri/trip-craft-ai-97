@@ -15,12 +15,10 @@ const cleanPerplexityRefs = (text: string): string => {
   return text.replace(/\[\d+\](\[\d+\])*/g, '').trim();
 };
 
-// Fetch route from OSRM (free routing service)
-const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number, number][] | null> => {
-  if (coordinates.length < 2) return null;
-  
+// Fetch route from OSRM (free routing service) - returns route coords or null if fails
+const fetchOSRMRoute = async (start: [number, number], end: [number, number]): Promise<{ coords: [number, number][] | null; isWater: boolean }> => {
   // OSRM expects lon,lat format
-  const coordString = coordinates.map(c => `${c[1]},${c[0]}`).join(';');
+  const coordString = `${start[1]},${start[0]};${end[1]},${end[0]}`;
   const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
   
   try {
@@ -29,13 +27,39 @@ const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number,
     
     if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
       // Convert from [lon, lat] to [lat, lon] for Leaflet
-      return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
+      const coords = data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
+      return { coords, isWater: false };
     }
-    return null;
+    // Route not found - likely water crossing
+    return { coords: null, isWater: true };
   } catch (error) {
     console.error('OSRM routing error:', error);
-    return null;
+    // On error, assume water crossing if distance > 50km
+    const distance = getDistanceKm(start, end);
+    return { coords: null, isWater: distance > 50 };
   }
+};
+
+// Calculate distance between two points in km (Haversine formula)
+const getDistanceKm = (p1: [number, number], p2: [number, number]): number => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (p2[0] - p1[0]) * Math.PI / 180;
+  const dLon = (p2[1] - p1[1]) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(p1[0] * Math.PI / 180) * Math.cos(p2[0] * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+// Create boat icon for water crossings
+const createBoatIcon = () => {
+  return L.divIcon({
+    className: 'boat-marker',
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:#0891b2;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 3px 8px rgba(0,0,0,0.3);">⛴️</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
 };
 
 interface CrowdScores {
@@ -306,7 +330,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
     }
 
-    // Draw routes using OSRM for road-based routing
+    // Draw routes using OSRM for road-based routing with water crossing detection
     const drawRoutes = async () => {
       if (!routeLayerGroupRef.current) return;
       
@@ -319,22 +343,36 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
       
       if (coordsToRoute.length > 1) {
-        const routeCoords = await fetchOSRMRoute(coordsToRoute);
-        
-        if (routeCoords && routeLayerGroupRef.current) {
-          L.polyline(routeCoords, {
-            color: '#4f46e5',
-            weight: 4,
-            opacity: 0.8
-          }).addTo(routeLayerGroupRef.current);
-        } else if (routeLayerGroupRef.current) {
-          // Fallback to straight lines if OSRM fails
-          L.polyline(coordsToRoute, {
-            color: '#4f46e5',
-            weight: 3,
-            opacity: 0.6,
-            dashArray: '8, 8'
-          }).addTo(routeLayerGroupRef.current);
+        // Process each segment individually to detect water crossings
+        for (let i = 0; i < coordsToRoute.length - 1; i++) {
+          const start = coordsToRoute[i];
+          const end = coordsToRoute[i + 1];
+          
+          const result = await fetchOSRMRoute(start, end);
+          
+          if (result.coords && !result.isWater && routeLayerGroupRef.current) {
+            // Normal road route - indigo color
+            L.polyline(result.coords, {
+              color: '#4f46e5',
+              weight: 4,
+              opacity: 0.8
+            }).addTo(routeLayerGroupRef.current);
+          } else if (routeLayerGroupRef.current) {
+            // Water crossing - teal dashed line with boat icons
+            L.polyline([start, end], {
+              color: '#0891b2',
+              weight: 4,
+              opacity: 0.9,
+              dashArray: '12, 8'
+            }).addTo(routeLayerGroupRef.current);
+            
+            // Add boat icon at midpoint of water crossing
+            const midLat = (start[0] + end[0]) / 2;
+            const midLon = (start[1] + end[1]) / 2;
+            L.marker([midLat, midLon], { icon: createBoatIcon() })
+              .bindPopup('<div class="font-bold text-sm text-gray-900">Ferry / Water Crossing</div>')
+              .addTo(routeLayerGroupRef.current);
+          }
         }
       }
     };
