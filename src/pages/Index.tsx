@@ -1,10 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Plane, Train, Bus, Car, 
-  Calendar as CalendarIcon, Users, MapPin, Search, 
-  ChevronDown, ChevronLeft, ChevronRight, Minus, Plus,
-  ArrowUp, Star, ArrowRight, Sparkles, Leaf, ShieldCheck, Loader2
-} from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Plane,
+  Train,
+  Bus,
+  Car,
+  Calendar as CalendarIcon,
+  Users,
+  MapPin,
+  Search,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Minus,
+  Plus,
+  ArrowUp,
+  Star,
+  ArrowRight,
+  Sparkles,
+  Leaf,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -26,10 +42,22 @@ interface TripData {
 }
 
 const MAJOR_CITIES = [
-  "New York, USA", "London, UK", "Paris, France", "Tokyo, Japan", "Belgrade, Serbia", 
-  "Dubai, UAE", "Singapore, Singapore", "Barcelona, Spain", "Rome, Italy", 
-  "Bangkok, Thailand", "Istanbul, Turkey", "Berlin, Germany", "Sydney, Australia", 
-  "Toronto, Canada", "Los Angeles, USA", "Amsterdam, Netherlands"
+  "New York, USA",
+  "London, UK",
+  "Paris, France",
+  "Tokyo, Japan",
+  "Belgrade, Serbia",
+  "Dubai, UAE",
+  "Singapore, Singapore",
+  "Barcelona, Spain",
+  "Rome, Italy",
+  "Bangkok, Thailand",
+  "Istanbul, Turkey",
+  "Berlin, Germany",
+  "Sydney, Australia",
+  "Toronto, Canada",
+  "Los Angeles, USA",
+  "Amsterdam, Netherlands",
 ];
 
 const reviews = {
@@ -40,23 +68,28 @@ const reviews = {
     { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&q=80&fit=crop", alt: "User 3" },
     { src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&q=80&fit=crop", alt: "User 4" },
     { src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&q=80&fit=crop", alt: "User 5" },
-  ]
+  ],
 };
 
 const Label = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <label className={`text-sm font-medium leading-none ${className}`}>{children}</label>
 );
 
-const SelectTrigger = ({ label, icon: Icon, onClick, active }: { 
-  label: string; 
-  icon: React.ElementType; 
-  onClick: () => void; 
-  active: boolean 
+const SelectTrigger = ({
+  label,
+  icon: Icon,
+  onClick,
+  active,
+}: {
+  label: string;
+  icon: React.ElementType;
+  onClick: () => void;
+  active: boolean;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`flex h-10 w-full items-center justify-between rounded-md border border-border bg-card px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${active ? 'ring-2 ring-primary' : ''}`}
+    className={`flex h-10 w-full items-center justify-between rounded-md border border-border bg-card px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${active ? "ring-2 ring-primary" : ""}`}
   >
     <div className="flex items-center gap-2 text-muted-foreground">
       {Icon && <Icon size={16} />}
@@ -85,7 +118,7 @@ const Calendar = ({ selected, onSelect }: { selected: Date | null; onSelect: (da
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
     const days: React.ReactNode[] = [];
-    
+
     for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} className="h-9 w-9" />);
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -99,30 +132,56 @@ const Calendar = ({ selected, onSelect }: { selected: Date | null; onSelect: (da
           onClick={() => handleSelectDate(day)}
           type="button"
           className={`h-9 w-9 p-0 font-normal text-sm rounded-md flex items-center justify-center transition-colors
-            ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}
-            ${isToday && !isSelected ? 'bg-muted text-foreground' : ''}
+            ${isSelected ? "bg-primary text-primary-foreground" : "hover:bg-muted"}
+            ${isToday && !isSelected ? "bg-muted text-foreground" : ""}
           `}
         >
           {day}
-        </button>
+        </button>,
       );
     }
     return days;
   };
 
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   return (
     <div className="p-3 bg-card">
       <div className="flex justify-between items-center mb-4 space-x-1">
-        <span className="text-sm font-medium">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
+        <span className="text-sm font-medium">
+          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+        </span>
         <div className="flex items-center space-x-1">
-          <Button variant="outline" size="icon" className="h-7 w-7 p-0" onClick={handlePrevMonth} type="button"><ChevronLeft className="h-4 w-4" /></Button>
-          <Button variant="outline" size="icon" className="h-7 w-7 p-0" onClick={handleNextMonth} type="button"><ChevronRight className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" className="h-7 w-7 p-0" onClick={handlePrevMonth} type="button">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="h-7 w-7 p-0" onClick={handleNextMonth} type="button">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <div key={day} className="text-[0.8rem] text-muted-foreground font-medium text-center h-9 flex items-center justify-center">{day}</div>)}
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+          <div
+            key={day}
+            className="text-[0.8rem] text-muted-foreground font-medium text-center h-9 flex items-center justify-center"
+          >
+            {day}
+          </div>
+        ))}
       </div>
       <div className="grid grid-cols-7 gap-1">{renderDays()}</div>
     </div>
@@ -137,10 +196,11 @@ const HeroSection = () => (
         <span className="text-primary">Not the Crowd.</span>
       </h1>
       <p className="text-balance lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-        Our AI predicts crowd levels in real-time to build itineraries that optimize for peace, privacy, and authentic experiences.
+        Our AI predicts crowd levels in real-time to build itineraries that optimize for peace, privacy, and authentic
+        experiences.
       </p>
     </div>
-    
+
     <div className="mx-auto mt-10 flex w-fit flex-col items-center gap-4 sm:flex-row mb-12">
       <span className="mx-4 inline-flex items-center -space-x-4">
         {reviews.avatars.map((avatar, index) => (
@@ -155,9 +215,7 @@ const HeroSection = () => (
             <Star key={index} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
           ))}
         </div>
-        <p className="text-left font-medium text-muted-foreground text-sm">
-          from {reviews.count}+ happy travelers
-        </p>
+        <p className="text-left font-medium text-muted-foreground text-sm">from {reviews.count}+ happy travelers</p>
       </div>
     </div>
   </div>
@@ -169,18 +227,24 @@ const ProcessSteps = () => (
       <h2 className="text-3xl font-bold text-foreground">How it works</h2>
       <p className="text-lg text-muted-foreground mt-2">We use AI to make your vacation more peaceful.</p>
     </div>
-    
+
     <div className="mt-12 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-12 md:gap-4 items-center max-w-5xl mx-auto px-4">
       {[
         { icon: MapPin, title: "Define Trip", desc: "Set your destination, budget, and crowd preferences." },
         { icon: Sparkles, title: "AI Processing", desc: "Our engine scans historical data & live sensors." },
-        { icon: Leaf, title: "Experience", desc: "Travel comfortably with optimized routing." }
+        { icon: Leaf, title: "Experience", desc: "Travel comfortably with optimized routing." },
       ].map((step, idx) => (
         <React.Fragment key={step.title}>
-          {idx > 0 && <div className="hidden md:flex justify-center text-muted-foreground/30"><ArrowRight size={32} /></div>}
+          {idx > 0 && (
+            <div className="hidden md:flex justify-center text-muted-foreground/30">
+              <ArrowRight size={32} />
+            </div>
+          )}
           <div className="flex flex-col items-center text-center gap-4">
             <div className="w-20 h-20 rounded-full bg-card shadow-xl border border-border flex items-center justify-center text-primary relative group hover:scale-105 transition-transform duration-300 cursor-default">
-              <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-md">{idx + 1}</span>
+              <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm shadow-md">
+                {idx + 1}
+              </span>
               <step.icon size={32} />
             </div>
             <div>
@@ -196,14 +260,14 @@ const ProcessSteps = () => (
 
 const Index = () => {
   const { toast } = useToast();
-  
+
   const dateRef = useRef<HTMLDivElement>(null);
   const travelersRef = useRef<HTMLDivElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
   const destRef = useRef<HTMLDivElement>(null);
 
   const [dateOpen, setDateOpen] = useState(false);
-  const [activeDateTab, setActiveDateTab] = useState<'from' | 'to'>('from');
+  const [activeDateTab, setActiveDateTab] = useState<"from" | "to">("from");
   const [travelersOpen, setTravelersOpen] = useState(false);
   const [originDropdownOpen, setOriginDropdownOpen] = useState(false);
   const [destDropdownOpen, setDestDropdownOpen] = useState(false);
@@ -218,7 +282,7 @@ const Index = () => {
     travelers: { adults: 1, kids: 0 },
     budget: "",
     transport: ["plane"] as string[],
-    crowdPreference: "avoid"
+    crowdPreference: "avoid",
   });
 
   useEffect(() => {
@@ -233,42 +297,44 @@ const Index = () => {
   }, []);
 
   const toggleTransport = (type: string) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const current = prev.transport;
-      return current.includes(type) 
-        ? { ...prev, transport: current.filter(t => t !== type) } 
+      return current.includes(type)
+        ? { ...prev, transport: current.filter((t) => t !== type) }
         : { ...prev, transport: [...current, type] };
     });
   };
 
   const handleDateSelect = (date: Date) => {
-    if (activeDateTab === 'from') {
-      setFormData(prev => ({ ...prev, dateFrom: date }));
-      setActiveDateTab('to');
+    if (activeDateTab === "from") {
+      setFormData((prev) => ({ ...prev, dateFrom: date }));
+      setActiveDateTab("to");
     } else {
-      setFormData(prev => ({ ...prev, dateTo: date }));
+      setFormData((prev) => ({ ...prev, dateTo: date }));
     }
   };
 
-  const formatDate = (date: Date | null) => date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "";
-  const formatDateForAPI = (date: Date | null) => date ? date.toISOString().split('T')[0] : "";
+  const formatDate = (date: Date | null) =>
+    date ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+  const formatDateForAPI = (date: Date | null) => (date ? date.toISOString().split("T")[0] : "");
 
-  const updateTravelers = (type: 'adults' | 'kids', operation: 'inc' | 'dec') => {
-    setFormData(prev => {
+  const updateTravelers = (type: "adults" | "kids", operation: "inc" | "dec") => {
+    setFormData((prev) => {
       const current = prev.travelers[type];
-      const newValue = operation === 'inc' ? current + 1 : Math.max(0, current - 1);
-      if (type === 'adults' && newValue < 1) return prev;
+      const newValue = operation === "inc" ? current + 1 : Math.max(0, current - 1);
+      if (type === "adults" && newValue < 1) return prev;
       return { ...prev, travelers: { ...prev.travelers, [type]: newValue } };
     });
   };
 
-  const handleCitySelect = (city: string, type: 'origin' | 'destination') => {
-    setFormData(prev => ({ ...prev, [type]: city }));
-    if (type === 'origin') setOriginDropdownOpen(false);
-    if (type === 'destination') setDestDropdownOpen(false);
+  const handleCitySelect = (city: string, type: "origin" | "destination") => {
+    setFormData((prev) => ({ ...prev, [type]: city }));
+    if (type === "origin") setOriginDropdownOpen(false);
+    if (type === "destination") setDestDropdownOpen(false);
   };
 
-  const filterCities = (query: string) => query ? MAJOR_CITIES.filter(city => city.toLowerCase().includes(query.toLowerCase())) : MAJOR_CITIES;
+  const filterCities = (query: string) =>
+    query ? MAJOR_CITIES.filter((city) => city.toLowerCase().includes(query.toLowerCase())) : MAJOR_CITIES;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,7 +365,7 @@ const Index = () => {
     setTripResults(null);
 
     try {
-      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook-test/bb609b3a-9f45", {
+      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tripData),
@@ -331,17 +397,34 @@ const Index = () => {
       travelers: { adults: 1, kids: 0 },
       budget: "",
       transport: ["plane"],
-      crowdPreference: "avoid"
+      crowdPreference: "avoid",
     });
   };
 
-  const Counter = ({ label, value, type }: { label: string; value: number; type: 'adults' | 'kids' }) => (
+  const Counter = ({ label, value, type }: { label: string; value: number; type: "adults" | "kids" }) => (
     <div className="flex items-center justify-between py-2">
       <span className="text-sm font-medium">{label}</span>
       <div className="flex items-center gap-3">
-        <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateTravelers(type, 'dec')} disabled={type === 'adults' && value <= 1}><Minus size={14} /></Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 rounded-full"
+          onClick={() => updateTravelers(type, "dec")}
+          disabled={type === "adults" && value <= 1}
+        >
+          <Minus size={14} />
+        </Button>
         <span className="w-4 text-center text-sm font-medium">{value}</span>
-        <Button type="button" variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateTravelers(type, 'inc')}><Plus size={14} /></Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 rounded-full"
+          onClick={() => updateTravelers(type, "inc")}
+        >
+          <Plus size={14} />
+        </Button>
       </div>
     </div>
   );
@@ -359,26 +442,27 @@ const Index = () => {
   return (
     <Layout>
       {isLoading && <LoadingOverlay />}
-      
-      <section className="relative pt-8 pb-16 overflow-hidden bg-background">
 
+      <section className="relative pt-8 pb-16 overflow-hidden bg-background">
         <div className="container mx-auto px-4 max-w-5xl">
           <HeroSection />
 
           <Card className="max-w-4xl mx-auto p-6 shadow-xl bg-card/80 backdrop-blur-sm relative z-10 text-left">
             <form onSubmit={handleSubmit} className="space-y-6">
-              
               {/* Locations Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 relative" ref={originRef}>
                   <Label>Where from?</Label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                    <Input 
+                    <Input
                       className="pl-10"
-                      placeholder="e.g. New York, London" 
+                      placeholder="e.g. New York, London"
                       value={formData.origin}
-                      onChange={(e) => { setFormData({...formData, origin: e.target.value}); setOriginDropdownOpen(true); }}
+                      onChange={(e) => {
+                        setFormData({ ...formData, origin: e.target.value });
+                        setOriginDropdownOpen(true);
+                      }}
                       onFocus={() => setOriginDropdownOpen(true)}
                     />
                   </div>
@@ -386,11 +470,18 @@ const Index = () => {
                     <div className="absolute top-full left-0 z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-md border border-border bg-popover shadow-lg p-1">
                       {filterCities(formData.origin).length > 0 ? (
                         filterCities(formData.origin).map((city, idx) => (
-                          <button key={idx} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors" onClick={() => handleCitySelect(city, 'origin')}>
+                          <button
+                            key={idx}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
+                            onClick={() => handleCitySelect(city, "origin")}
+                          >
                             {city}
                           </button>
                         ))
-                      ) : <div className="px-3 py-2 text-sm text-muted-foreground">No results found.</div>}
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">No results found.</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -399,11 +490,14 @@ const Index = () => {
                   <Label>Where to?</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                    <Input 
+                    <Input
                       className="pl-10"
-                      placeholder="e.g. Belgrade, Serbia" 
+                      placeholder="e.g. Belgrade, Serbia"
                       value={formData.destination}
-                      onChange={(e) => { setFormData({...formData, destination: e.target.value}); setDestDropdownOpen(true); }}
+                      onChange={(e) => {
+                        setFormData({ ...formData, destination: e.target.value });
+                        setDestDropdownOpen(true);
+                      }}
                       onFocus={() => setDestDropdownOpen(true)}
                     />
                   </div>
@@ -411,11 +505,18 @@ const Index = () => {
                     <div className="absolute top-full left-0 z-20 mt-1 w-full max-h-60 overflow-y-auto rounded-md border border-border bg-popover shadow-lg p-1">
                       {filterCities(formData.destination).length > 0 ? (
                         filterCities(formData.destination).map((city, idx) => (
-                          <button key={idx} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors" onClick={() => handleCitySelect(city, 'destination')}>
+                          <button
+                            key={idx}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors"
+                            onClick={() => handleCitySelect(city, "destination")}
+                          >
                             {city}
                           </button>
                         ))
-                      ) : <div className="px-3 py-2 text-sm text-muted-foreground">No results found.</div>}
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">No results found.</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -425,29 +526,50 @@ const Index = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-2 space-y-2 relative" ref={dateRef}>
                   <Label>When?</Label>
-                  <SelectTrigger 
+                  <SelectTrigger
                     icon={CalendarIcon}
-                    label={formData.dateFrom ? `${formatDate(formData.dateFrom)} ${formData.dateTo ? `- ${formatDate(formData.dateTo)}` : ''}` : "Select dates"}
+                    label={
+                      formData.dateFrom
+                        ? `${formatDate(formData.dateFrom)} ${formData.dateTo ? `- ${formatDate(formData.dateTo)}` : ""}`
+                        : "Select dates"
+                    }
                     onClick={() => setDateOpen(!dateOpen)}
                     active={dateOpen}
                   />
                   {dateOpen && (
                     <div className="absolute top-full left-0 z-20 mt-2 w-full max-w-[340px] p-0 rounded-md border border-border bg-popover shadow-xl overflow-hidden">
                       <div className="flex border-b border-border p-2 gap-2 bg-muted/50">
-                        <button type="button" onClick={() => setActiveDateTab('from')} className={`flex-1 text-xs font-medium py-1.5 px-2 rounded transition-colors text-left ${activeDateTab === 'from' ? 'bg-card shadow-sm text-foreground ring-1 ring-border' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
-                          <span className="block text-[10px] text-muted-foreground uppercase tracking-wider">Departure</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDateTab("from")}
+                          className={`flex-1 text-xs font-medium py-1.5 px-2 rounded transition-colors text-left ${activeDateTab === "from" ? "bg-card shadow-sm text-foreground ring-1 ring-border" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                        >
+                          <span className="block text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Departure
+                          </span>
                           {formData.dateFrom ? formatDate(formData.dateFrom) : "Select date"}
                         </button>
-                        <button type="button" onClick={() => setActiveDateTab('to')} className={`flex-1 text-xs font-medium py-1.5 px-2 rounded transition-colors text-left ${activeDateTab === 'to' ? 'bg-card shadow-sm text-foreground ring-1 ring-border' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
-                          <span className="block text-[10px] text-muted-foreground uppercase tracking-wider">Return</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDateTab("to")}
+                          className={`flex-1 text-xs font-medium py-1.5 px-2 rounded transition-colors text-left ${activeDateTab === "to" ? "bg-card shadow-sm text-foreground ring-1 ring-border" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                        >
+                          <span className="block text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Return
+                          </span>
                           {formData.dateTo ? formatDate(formData.dateTo) : "Select date"}
                         </button>
                       </div>
                       <div className="p-2">
-                        <Calendar selected={activeDateTab === 'from' ? formData.dateFrom : formData.dateTo} onSelect={handleDateSelect} />
+                        <Calendar
+                          selected={activeDateTab === "from" ? formData.dateFrom : formData.dateTo}
+                          onSelect={handleDateSelect}
+                        />
                       </div>
                       <div className="p-3 border-t border-border bg-muted/50 flex justify-end">
-                        <Button type="button" size="sm" className="h-8 text-xs" onClick={() => setDateOpen(false)}>Done</Button>
+                        <Button type="button" size="sm" className="h-8 text-xs" onClick={() => setDateOpen(false)}>
+                          Done
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -455,7 +577,12 @@ const Index = () => {
 
                 <div className="space-y-2 relative" ref={travelersRef}>
                   <Label>Travelers</Label>
-                  <SelectTrigger icon={Users} label={`${totalTravelers} Traveler${totalTravelers > 1 ? 's' : ''}`} onClick={() => setTravelersOpen(!travelersOpen)} active={travelersOpen} />
+                  <SelectTrigger
+                    icon={Users}
+                    label={`${totalTravelers} Traveler${totalTravelers > 1 ? "s" : ""}`}
+                    onClick={() => setTravelersOpen(!travelersOpen)}
+                    active={travelersOpen}
+                  />
                   {travelersOpen && (
                     <div className="absolute top-full left-0 z-20 mt-2 w-full p-4 rounded-md border border-border bg-popover shadow-lg min-w-[200px]">
                       <div className="space-y-2">
@@ -463,14 +590,27 @@ const Index = () => {
                         <div className="h-px bg-border" />
                         <Counter label="Kids" value={formData.travelers.kids} type="kids" />
                       </div>
-                      <Button type="button" size="sm" variant="secondary" className="w-full mt-4" onClick={() => setTravelersOpen(false)}>Done</Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="w-full mt-4"
+                        onClick={() => setTravelersOpen(false)}
+                      >
+                        Done
+                      </Button>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Budget ($)</Label>
-                  <Input type="number" placeholder="5000" value={formData.budget} onChange={(e) => setFormData({...formData, budget: e.target.value})} />
+                  <Input
+                    type="number"
+                    placeholder="5000"
+                    value={formData.budget}
+                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  />
                 </div>
               </div>
 
@@ -480,8 +620,19 @@ const Index = () => {
                   <div className="space-y-2">
                     <Label className="text-xs uppercase text-muted-foreground tracking-wider">Transport Mode</Label>
                     <div className="flex gap-2">
-                      {[{ id: 'plane', icon: Plane }, { id: 'train', icon: Train }, { id: 'bus', icon: Bus }, { id: 'car', icon: Car }].map((mode) => (
-                        <button key={mode.id} type="button" onClick={() => toggleTransport(mode.id)} className={`p-2 rounded-md transition-all ${formData.transport.includes(mode.id) ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2' : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'}`} aria-label={mode.id}>
+                      {[
+                        { id: "plane", icon: Plane },
+                        { id: "train", icon: Train },
+                        { id: "bus", icon: Bus },
+                        { id: "car", icon: Car },
+                      ].map((mode) => (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => toggleTransport(mode.id)}
+                          className={`p-2 rounded-md transition-all ${formData.transport.includes(mode.id) ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"}`}
+                          aria-label={mode.id}
+                        >
                           <mode.icon size={18} />
                         </button>
                       ))}
@@ -490,8 +641,13 @@ const Index = () => {
                   <div className="space-y-2 flex-1 md:max-w-xs">
                     <Label className="text-xs uppercase text-muted-foreground tracking-wider">Crowd Tolerance</Label>
                     <div className="grid grid-cols-3 gap-1 bg-muted p-1 rounded-lg">
-                      {['Avoid', 'Balanced', 'Popular'].map((pref) => (
-                        <button key={pref} type="button" onClick={() => setFormData({...formData, crowdPreference: pref.toLowerCase()})} className={`text-xs font-medium py-1.5 rounded-md transition-all ${formData.crowdPreference === pref.toLowerCase() ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                      {["Avoid", "Balanced", "Popular"].map((pref) => (
+                        <button
+                          key={pref}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, crowdPreference: pref.toLowerCase() })}
+                          className={`text-xs font-medium py-1.5 rounded-md transition-all ${formData.crowdPreference === pref.toLowerCase() ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                        >
                           {pref}
                         </button>
                       ))}
@@ -513,14 +669,14 @@ const Index = () => {
                   </>
                 )}
               </Button>
-              
+
               <p className="text-center text-xs text-muted-foreground">
                 <ShieldCheck size={12} className="inline mr-1" />
                 AI analyzes historical foot traffic, weather, and local events.
               </p>
             </form>
           </Card>
-          
+
           <ProcessSteps />
 
           <div className="mt-20 flex justify-center pb-12">
