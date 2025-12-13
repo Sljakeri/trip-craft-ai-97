@@ -287,13 +287,12 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     if (currentDayIndex === 'all') {
       const dayColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
       days.forEach((day, dayIdx) => {
-        if (day.activities.length > 1) {
-          const coords = day.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+        const coords = day.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+        if (coords.length > 1) {
           L.polyline(coords, {
             color: dayColors[dayIdx % dayColors.length],
-            weight: 3,
-            opacity: 0.6,
-            dashArray: '8, 8'
+            weight: 4,
+            opacity: 0.8
           }).addTo(routeLayerGroupRef.current!);
         }
       });
@@ -441,11 +440,11 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
             {/* Day Tabs */}
             {days.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-3">
+              <div className="flex gap-1 mb-3 overflow-x-auto pb-1 scrollbar-hide">
                 {/* All Days Button */}
                 <button
                   onClick={() => handleDayChange('all')}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                  className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                     currentDayIndex === 'all'
                       ? 'bg-primary text-primary-foreground shadow'
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -458,13 +457,13 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                   <button
                     key={day.day_number}
                     onClick={() => handleDayChange(idx)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+                    className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${
                       idx === currentDayIndex
                         ? 'bg-primary text-primary-foreground shadow'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
-                    D{day.day_number}
+                    Day {day.day_number}
                   </button>
                 ))}
               </div>
