@@ -37,7 +37,7 @@ interface FormData {
   dateTo?: Date | null;
   travelers?: { adults: number; kids: number };
   budget?: string;
-  transport?: string[];
+  transport?: string | string[];
   crowdPreference?: string;
 }
 

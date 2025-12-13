@@ -281,7 +281,7 @@ const Index = () => {
     dateTo: null as Date | null,
     travelers: { adults: 1, kids: 0 },
     budget: "",
-    transport: ["plane"] as string[],
+    transport: "car",
     crowdPreference: "avoid",
   });
 
@@ -296,13 +296,8 @@ const Index = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleTransport = (type: string) => {
-    setFormData((prev) => {
-      const current = prev.transport;
-      return current.includes(type)
-        ? { ...prev, transport: current.filter((t) => t !== type) }
-        : { ...prev, transport: [...current, type] };
-    });
+  const selectTransport = (type: string) => {
+    setFormData((prev) => ({ ...prev, transport: type }));
   };
 
   const handleDateSelect = (date: Date) => {
@@ -355,7 +350,7 @@ const Index = () => {
       endDate: formatDateForAPI(formData.dateTo),
       numberOfPeople: formData.travelers.adults + formData.travelers.kids,
       budgetUSD: formData.budget ? parseFloat(formData.budget) : null,
-      preferredTransport: formData.transport,
+      preferredTransport: [formData.transport],
       travelDurationDays: null,
     };
 
@@ -396,7 +391,7 @@ const Index = () => {
       dateTo: null,
       travelers: { adults: 1, kids: 0 },
       budget: "",
-      transport: ["plane"],
+      transport: "car",
       crowdPreference: "avoid",
     });
   };
@@ -626,16 +621,16 @@ const Index = () => {
                     <Label className="text-xs uppercase text-muted-foreground tracking-wider">Transport Mode</Label>
                     <div className="flex gap-2">
                       {[
-                        { id: "plane", icon: Plane },
-                        { id: "train", icon: Train },
-                        { id: "bus", icon: Bus },
                         { id: "car", icon: Car },
+                        { id: "plane", icon: Plane },
+                        { id: "bus", icon: Bus },
+                        { id: "train", icon: Train },
                       ].map((mode) => (
                         <button
                           key={mode.id}
                           type="button"
-                          onClick={() => toggleTransport(mode.id)}
-                          className={`p-2 rounded-md transition-all ${formData.transport.includes(mode.id) ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"}`}
+                          onClick={() => selectTransport(mode.id)}
+                          className={`p-2 rounded-md transition-all ${formData.transport === mode.id ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"}`}
                           aria-label={mode.id}
                         >
                           <mode.icon size={18} />
