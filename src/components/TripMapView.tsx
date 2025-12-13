@@ -346,7 +346,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
 
       const marker = L.marker(item.coords, { icon })
-        .bindPopup(`<div class="font-bold text-sm text-center">${item.name}</div><div class="text-xs text-center text-gray-500">${item.arrive || item.time}</div>`)
+        .bindPopup(`<div class="font-bold text-sm text-center text-gray-900">${item.name}</div><div class="text-xs text-center text-gray-600">${item.arrive || item.time}</div>`)
         .addTo(routeLayerGroupRef.current!);
       
       markersRef.current.push(marker);
@@ -553,11 +553,11 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                         </div>
                       </div>
                       <div className="mt-4 pt-3 border-t border-dashed border-border space-y-2">
-                        <div className="flex items-start gap-2 text-xs text-foreground bg-blue-50 dark:bg-blue-950 p-2.5 rounded-lg">
+                        <div className="flex items-start gap-2 text-xs p-2.5 rounded-lg bg-blue-50 text-blue-900">
                           <span>💧</span>
                           <span>{(currentItem.data as any).waterInfo}</span>
                         </div>
-                        <div className="flex items-start gap-2 text-xs text-foreground bg-amber-50 dark:bg-amber-950 p-2.5 rounded-lg">
+                        <div className="flex items-start gap-2 text-xs p-2.5 rounded-lg bg-amber-50 text-amber-900">
                           <span>⚠️</span>
                           <span>{(currentItem.data as any).safetyWarning}</span>
                         </div>
