@@ -57,6 +57,7 @@ interface Activity {
   description: string;
   cost_tier: string;
   is_free: boolean;
+  time?: string;
   coordinates: { lat: number; lon: number };
   estimated_crowd_scores: CrowdScores;
   nearby_context?: {
@@ -618,6 +619,12 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                   <div className={`p-4 border-b border-border ${currentActivity.type === 'Hidden Gem' ? 'bg-purple-50 dark:bg-purple-950/30' : ''}`}>
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1">
+                        {currentActivity.time && (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-primary mb-1">
+                            <span className="text-muted-foreground">🕐</span>
+                            {currentActivity.time}
+                          </div>
+                        )}
                         <h3 className="font-bold text-foreground text-lg leading-tight">
                           {cleanPerplexityRefs(currentActivity.name)}
                         </h3>
