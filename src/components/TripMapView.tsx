@@ -1,8 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, MapPin, X, Menu } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// Clean perplexity references like [1], [2], [1][4] from text
+const cleanPerplexityRefs = (text: string): string => {
+  return text.replace(/\[\d+\](\[\d+\])*/g, '').trim();
+};
 
 interface CrowdScores {
   "08:00": number;
@@ -88,6 +93,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [showSteps, setShowSteps] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Process API data into app format
   const processApiData = useCallback(() => {
@@ -107,12 +113,12 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     data.must_see_destinations?.forEach((item, idx) => {
       locations.push({
         id: `landmark_${idx}`,
-        name: item.name,
+        name: cleanPerplexityRefs(item.name),
         coords: [item.coordinates.lat, item.coordinates.lng],
         dropoff: getDropoff(item.coordinates),
         durationMin: 90,
         type: 'landmark',
-        description: item.description,
+        description: cleanPerplexityRefs(item.description),
         crowd: formatCrowd(item.crowd_scores)
       });
     });
@@ -120,14 +126,14 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     data.hidden_gems?.forEach((item, idx) => {
       locations.push({
         id: `gem_${idx}`,
-        name: item.name,
+        name: cleanPerplexityRefs(item.name),
         coords: [item.coordinates.lat, item.coordinates.lng],
         dropoff: getDropoff(item.coordinates),
         durationMin: 45,
         type: 'gem',
-        description: item.description,
+        description: cleanPerplexityRefs(item.description),
         crowd: formatCrowd(item.crowd_scores),
-        gemType: item.type
+        gemType: cleanPerplexityRefs(item.type)
       });
     });
 
@@ -140,7 +146,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       name: "Start Location",
       coords: centerCoords,
       city: destinationCity,
-      safetyWarning: data.city_info?.safety_advisory || "Stay aware of your surroundings.",
+      safetyWarning: cleanPerplexityRefs(data.city_info?.safety_advisory || "Stay aware of your surroundings."),
       waterInfo: data.city_info?.water_drinkable ? "Tap water is safe to drink." : "Drink bottled water only."
     };
 
@@ -295,9 +301,23 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
       routeLayersRef.current.push({ legIndex: res.index, layer: mainLayer, isVehicle });
 
-      if (res.hasDropoff) {
-        const walkConnector = L.polyline([res.dropoff, res.finalDest], {
-          color: '#3F72AF', weight: 3, opacity: 0.6, dashArray: '4, 6'
+      // Always draw dotted line from route end to actual destination marker
+      // Get the last coordinate of the route geometry
+      const routeCoords = route.geometry.coordinates;
+      const lastRoutePoint = routeCoords[routeCoords.length - 1]; // [lng, lat]
+      const destCoords = res.finalDest; // [lat, lng]
+      
+      // Check if there's a gap between route end and destination
+      const routeEndLatLng: [number, number] = [lastRoutePoint[1], lastRoutePoint[0]];
+      const destLatLng: [number, number] = [destCoords[0], destCoords[1]];
+      
+      // Calculate distance in meters between route end and destination
+      const gapDistance = L.latLng(routeEndLatLng).distanceTo(L.latLng(destLatLng));
+      
+      // If there's any gap (more than 5 meters), draw dotted connector
+      if (gapDistance > 5) {
+        const walkConnector = L.polyline([routeEndLatLng, destLatLng], {
+          color: '#EF4444', weight: 3, opacity: 0.8, dashArray: '6, 8'
         }).addTo(routeLayerGroupRef.current!);
         
         routeLayersRef.current.push({ legIndex: res.index, layer: walkConnector, isVehicle: false });
@@ -427,10 +447,32 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
   const currentItem = currentItinerary[currentStepIndex];
 
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    // Invalidate map size after transition
+    setTimeout(() => {
+      mapRef.current?.invalidateSize();
+    }, 300);
+  };
+
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] min-h-[600px]">
+    <div className={`relative w-full transition-all duration-300 ${
+      isFullscreen 
+        ? 'fixed inset-0 z-[9999] h-screen' 
+        : 'h-[calc(100vh-80px)] min-h-[600px]'
+    }`}>
       {/* Map */}
       <div ref={mapContainer} className="absolute inset-0 z-0" />
+
+      {/* Fullscreen Toggle Button */}
+      <button
+        onClick={toggleFullscreen}
+        className="absolute top-4 right-4 z-50 bg-background text-foreground p-3 rounded-full shadow-lg hover:bg-muted transition-all border border-border"
+        title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+      >
+        {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+      </button>
 
       {/* Minimized Trigger */}
       {!sidebarVisible && (
