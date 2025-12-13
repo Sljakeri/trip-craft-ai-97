@@ -125,8 +125,8 @@ const Signup = () => {
   if (loading) {
     return (
       <Layout>
-        <main className="flex justify-center items-center px-5 py-20 bg-slate-100 min-h-[calc(100vh-140px)]">
-          <div className="text-slate-500">Loading...</div>
+        <main className="flex justify-center items-center px-5 py-20 min-h-[calc(100vh-140px)]">
+          <div className="text-muted-foreground">Loading...</div>
         </main>
       </Layout>
     );
@@ -134,8 +134,8 @@ const Signup = () => {
 
   return (
     <Layout>
-      <main className="flex justify-center px-5 py-20 bg-slate-100 min-h-[calc(100vh-140px)]">
-        <div className="bg-white p-14 rounded-3xl w-full max-w-[520px] shadow-[0_25px_60px_rgba(0,0,0,0.08)] text-center">
+      <main className="flex justify-center px-5 py-20 min-h-[calc(100vh-140px)]">
+        <div className="bg-card p-14 rounded-3xl w-full max-w-[640px] shadow-[0_25px_60px_rgba(0,0,0,0.08)] text-center">
           {/* Badge */}
           <div className="inline-block bg-indigo-50 text-primary text-sm font-semibold px-5 py-2 rounded-full mb-4">
             Get Started
