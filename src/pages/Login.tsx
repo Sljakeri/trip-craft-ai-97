@@ -27,7 +27,7 @@ const Login = () => {
 
   return (
     <Layout>
-      <div className="w-full flex justify-center py-20 px-5 bg-secondary/30">
+      <div className="w-full flex justify-center py-20 px-5" style={{ backgroundColor: '#f8fafc' }}>
         <div className="bg-card p-14 rounded-3xl w-full max-w-[520px] shadow-[0_25px_60px_rgba(0,0,0,0.08)] text-center">
           <div className="inline-block bg-primary/10 text-primary text-[13px] font-semibold px-[18px] py-2 rounded-full mb-3.5">
             Welcome Back

@@ -1,18 +1,16 @@
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-background border-t border-border py-12 text-sm">
+    <footer className="border-t border-border py-12 text-sm" style={{ backgroundColor: '#ffffff' }}>
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 font-bold text-lg mb-4 text-foreground">
-              <div className="bg-primary text-primary-foreground p-1 rounded">
-                <Sparkles size={14} />
-              </div>
+            <Link to="/" className="flex items-center gap-2 font-bold text-lg mb-4 text-foreground">
+              <img src={logo} alt="NexTravel AI" className="h-8 w-auto" />
               NexTravel
-            </div>
+            </Link>
             <p className="text-muted-foreground mb-4">Revolutionizing travel with intelligent, crowd-aware planning.</p>
           </div>
           
