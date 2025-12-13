@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,45 +18,97 @@ const Login = () => {
     });
   };
 
+  const handleGoogleLogin = () => {
+    toast({
+      title: "Google Sign-In",
+      description: "Google Sign-In coming soon!",
+    });
+  };
+
   return (
     <Layout>
-      <div className="hero-container auth-container">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
-        <p className="text-secondary mb-8">Log in to access your saved itineraries.</p>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label htmlFor="email">Email Address</label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-3 border-2 border-border rounded-lg"
-            />
+      <main className="flex justify-center px-5 py-20 bg-slate-100 min-h-[calc(100vh-140px)]">
+        <div className="bg-white p-14 rounded-3xl w-full max-w-[520px] shadow-[0_25px_60px_rgba(0,0,0,0.08)] text-center">
+          {/* Badge */}
+          <div className="inline-block bg-indigo-50 text-primary text-sm font-semibold px-5 py-2 rounded-full mb-4">
+            Welcome Back
           </div>
           
-          <div className="input-group mt-4">
-            <label htmlFor="password">Password</label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-3 border-2 border-border rounded-lg"
-            />
-          </div>
-          
-          <button type="submit" className="confirm-btn">LOG IN</button>
-          
-          <p className="mt-4 text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-primary font-medium hover:underline transition-colors duration-200">Sign up</Link>
+          {/* Heading */}
+          <h1 className="text-4xl font-bold text-foreground mb-3">Log In</h1>
+          <p className="text-slate-500 text-base mb-9">
+            Access your saved itineraries and plans.
           </p>
-        </form>
-      </div>
+
+          {/* Google Button */}
+          <button
+            onClick={handleGoogleLogin}
+            className="flex items-center justify-center gap-3 w-full h-14 rounded-full border border-slate-200 bg-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-slate-50 hover:shadow-lg mb-6"
+          >
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google"
+              className="w-5 h-5"
+            />
+            Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6 text-slate-400 text-sm">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span>or</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="text-left">
+            <label className="text-base font-semibold mb-2 block text-foreground">
+              Email Address
+            </label>
+            <div className="flex items-center border border-blue-100 rounded-full px-5 py-3 mb-5 transition-all duration-200 focus-within:border-indigo-400 focus-within:shadow-[0_0_0_4px_rgba(99,102,241,0.15)]">
+              <Mail className="w-5 h-5 text-slate-500 mr-3" />
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border-none shadow-none p-0 h-auto text-base focus-visible:ring-0 bg-transparent"
+                required
+              />
+            </div>
+
+            <label className="text-base font-semibold mb-2 block text-foreground">
+              Password
+            </label>
+            <div className="flex items-center border border-blue-100 rounded-full px-5 py-3 mb-5 transition-all duration-200 focus-within:border-indigo-400 focus-within:shadow-[0_0_0_4px_rgba(99,102,241,0.15)]">
+              <Lock className="w-5 h-5 text-slate-500 mr-3" />
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border-none shadow-none p-0 h-auto text-base focus-visible:ring-0 bg-transparent"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full h-14 rounded-full border-none bg-primary text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] mt-3"
+            >
+              Log In
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-6 text-sm text-slate-500">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary font-semibold hover:underline transition-colors duration-200">
+              Sign up
+            </Link>
+          </div>
+        </div>
+      </main>
     </Layout>
   );
 };
