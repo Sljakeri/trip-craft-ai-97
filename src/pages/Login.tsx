@@ -1,21 +1,66 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Mail, Lock } from "lucide-react";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { signIn, user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/");
+    }
+  }, [user, loading, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const { error } = await signIn(email, password);
+    setIsSubmitting(false);
+
+    if (error) {
+      let message = error.message;
+      if (message.includes("Invalid login credentials")) {
+        message = "Invalid email or password. Please try again.";
+      }
+      toast({
+        title: "Login Failed",
+        description: message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
-      title: "Login",
-      description: "Login functionality coming soon!",
+      title: "Welcome Back!",
+      description: "You have successfully logged in.",
     });
+    navigate("/");
   };
 
   const handleGoogleLogin = () => {
@@ -24,6 +69,16 @@ const Login = () => {
       description: "Google Sign-In coming soon!",
     });
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <main className="flex justify-center items-center px-5 py-20 bg-slate-100 min-h-[calc(100vh-140px)]">
+          <div className="text-slate-500">Loading...</div>
+        </main>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -94,9 +149,10 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full h-14 rounded-full border-none bg-primary text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] mt-3"
+              disabled={isSubmitting}
+              className="w-full h-14 rounded-full border-none bg-primary text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Log In
+              {isSubmitting ? "Logging in..." : "Log In"}
             </button>
           </form>
 
