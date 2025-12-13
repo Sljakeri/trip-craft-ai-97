@@ -9,9 +9,9 @@ interface LayoutProps {
 
 const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#ffffff' }}>
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
-      <main className={`flex-1 flex justify-center ${hideFooter ? '' : 'items-center p-8'}`} style={{ backgroundColor: '#ffffff' }}>
+      <main className={`flex-1 flex justify-center bg-white ${hideFooter ? '' : 'items-center p-8'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}
