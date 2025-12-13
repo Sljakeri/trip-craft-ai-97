@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
+import SavedTrips from "./pages/SavedTrips";
+import ViewTrip from "./pages/ViewTrip";
 import About from "./pages/About";
 import Premium from "./pages/Premium";
 import Support from "./pages/Support";
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/saved-trips" element={<SavedTrips />} />
+            <Route path="/view-trip" element={<ViewTrip />} />
             <Route path="/about" element={<About />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/support" element={<Support />} />

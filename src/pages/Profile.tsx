@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Mail, Camera, LogOut } from "lucide-react";
+import { User, Mail, Camera, LogOut, MapPin } from "lucide-react";
 
 const Profile = () => {
   const { user, signOut, loading } = useAuth();
@@ -218,6 +218,15 @@ const Profile = () => {
                 className="border-none outline-none w-full text-base bg-transparent text-slate-500"
               />
             </div>
+
+            {/* Saved Trips Link */}
+            <Link
+              to="/saved-trips"
+              className="w-full h-14 border-2 border-indigo-200 rounded-full bg-indigo-50 text-indigo-700 text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-indigo-100 active:scale-[0.98] flex items-center justify-center gap-2 mb-4"
+            >
+              <MapPin className="h-4 w-4" />
+              View Saved Trips
+            </Link>
 
             <button
               onClick={handleSaveProfile}
