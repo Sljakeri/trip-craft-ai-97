@@ -43,7 +43,13 @@ const TripResults = ({ data, onNewTrip }: TripResultsProps) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.accommodation.map((item: any, index: number) => (
-              <AccommodationCard key={index} accommodation={item} />
+              <AccommodationCard 
+                key={index} 
+                name={item.name}
+                price={item.price}
+                reason={item.reason}
+                index={index}
+              />
             ))}
           </div>
         </section>
@@ -58,7 +64,14 @@ const TripResults = ({ data, onNewTrip }: TripResultsProps) => {
           </div>
           <div className="space-y-3">
             {data.dining.map((item: any, index: number) => (
-              <DiningCard key={index} dining={item} />
+              <DiningCard 
+                key={index} 
+                name={item.name}
+                cuisine={item.cuisine}
+                priceRange={item.priceRange}
+                description={item.description}
+                index={index}
+              />
             ))}
           </div>
         </section>
@@ -73,7 +86,14 @@ const TripResults = ({ data, onNewTrip }: TripResultsProps) => {
           </div>
           <div className="space-y-3">
             {data.activities.map((item: any, index: number) => (
-              <ActivityCard key={index} activity={item} />
+              <ActivityCard 
+                key={index} 
+                name={item.name}
+                duration={item.duration}
+                description={item.description}
+                location={item.location}
+                index={index}
+              />
             ))}
           </div>
         </section>
@@ -86,7 +106,12 @@ const TripResults = ({ data, onNewTrip }: TripResultsProps) => {
             <Cloud className="h-6 w-6 text-secondary" />
             <h2 className="text-2xl font-bold text-foreground">Travel Info</h2>
           </div>
-          <LogisticsCard logistics={data.logistics} />
+          <LogisticsCard 
+            weather={data.logistics.weather}
+            tips={data.logistics.tips}
+            transportation={data.logistics.transportation}
+            currency={data.logistics.currency}
+          />
         </section>
       )}
     </div>
