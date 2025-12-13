@@ -24,7 +24,6 @@ const transportOptions = [
   { type: "train", icon: Train, label: "Train" },
   { type: "bus", icon: Bus, label: "Bus" },
   { type: "car", icon: Car, label: "Car Rental" },
-  { type: "ship", icon: Ship, label: "Cruise/Ship" },
 ];
 
 const Index = () => {
