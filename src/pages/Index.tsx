@@ -112,7 +112,7 @@ const Index = () => {
   if (tripResults) {
     return (
       <Layout>
-        <TripResults data={tripResults} onNewTrip={handleNewTrip} />
+        <TripResults data={tripResults} onNewTrip={handleNewTrip} destinationCity={destination} />
       </Layout>
     );
   }
