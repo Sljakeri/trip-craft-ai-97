@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, MapPin, X, Menu, Save, Check, LogIn } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu, Save, Check, LogIn, Receipt } from 'lucide-react';
+import ExpensePanel from './ExpensePanel';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -753,6 +754,9 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
           )}
         </div>
       )}
+
+      {/* Expense Panel - Right Side */}
+      <ExpensePanel currency={data.city_info?.currency} />
     </div>
   );
 };
