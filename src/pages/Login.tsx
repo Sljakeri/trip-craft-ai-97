@@ -41,7 +41,7 @@ const Login = () => {
           budget: pendingTrip.formData?.budget || null,
           travelers_adults: pendingTrip.formData?.travelers?.adults || 1,
           travelers_kids: pendingTrip.formData?.travelers?.kids || 0,
-          transport_modes: pendingTrip.formData?.transport || [],
+          transport_modes: pendingTrip.formData?.transport ? (Array.isArray(pendingTrip.formData.transport) ? pendingTrip.formData.transport : [pendingTrip.formData.transport]) : [],
           crowd_preference: pendingTrip.formData?.crowdPreference || null,
           trip_data: pendingTrip.tripData,
         }] as any);
