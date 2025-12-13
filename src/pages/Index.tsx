@@ -360,6 +360,7 @@ const Index = () => {
     setTripResults(null);
 
     try {
+      // First webhook: Get trip itinerary data
       const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -368,8 +369,30 @@ const Index = () => {
 
       if (!response.ok) throw new Error("Service unavailable");
 
-      const data = await response.json();
-      setTripResults(data);
+      const itineraryData = await response.json();
+
+      // Second webhook: Get travel prices/expenses data
+      const pricesResponse = await fetch("https://bubatron28.app.n8n.cloud/webhook/73f28d9f-3738-4e5c", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tripData),
+      });
+
+      if (!pricesResponse.ok) throw new Error("Prices service unavailable");
+
+      const pricesData = await pricesResponse.json();
+
+      // Merge both responses into trip results
+      const mergedData = {
+        ...itineraryData,
+        budget_analysis: pricesData.budget_analysis,
+        logistics_summary: pricesData.logistics_summary,
+        flight_details: pricesData.flight_details,
+        accommodation_plan: pricesData.accommodation_plan,
+        dining_manifest: pricesData.dining_manifest,
+      };
+
+      setTripResults(mergedData);
     } catch (error) {
       console.error("Error:", error);
       toast({
