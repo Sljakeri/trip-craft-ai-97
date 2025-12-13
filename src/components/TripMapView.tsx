@@ -283,19 +283,17 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
     }
 
-    // Draw routes - for all view, draw separate routes per day with different colors
+    // Draw routes
     if (currentDayIndex === 'all') {
-      const dayColors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
-      days.forEach((day, dayIdx) => {
-        const coords = day.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
-        if (coords.length > 1) {
-          L.polyline(coords, {
-            color: dayColors[dayIdx % dayColors.length],
-            weight: 4,
-            opacity: 0.8
-          }).addTo(routeLayerGroupRef.current!);
-        }
-      });
+      // For all view, draw one continuous line through all activities
+      const allCoords = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+      if (allCoords.length > 1) {
+        L.polyline(allCoords, {
+          color: '#4f46e5',
+          weight: 4,
+          opacity: 0.8
+        }).addTo(routeLayerGroupRef.current!);
+      }
     } else if (currentDay && currentDay.activities.length > 1) {
       const coords = currentDay.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
       L.polyline(coords, {
