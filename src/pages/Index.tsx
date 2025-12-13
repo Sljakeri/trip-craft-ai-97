@@ -365,7 +365,7 @@ const Index = () => {
     setTripResults(null);
 
     try {
-      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
+      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook-test/bb609b3a-9f45", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tripData),
