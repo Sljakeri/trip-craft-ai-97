@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Plane, Hotel, Car, Utensils, Ticket, X, CreditCard } from 'lucide-react';
+import { Plus, Plane, Hotel, Car, Utensils, Ticket, X, CreditCard, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -40,6 +40,7 @@ interface ExpensePanelProps {
 const ExpensePanel: React.FC<ExpensePanelProps> = ({ currency = 'USD' }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [newExpense, setNewExpense] = useState({
     category: 'flight' as Expense['category'],
     name: '',
@@ -68,7 +69,6 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({ currency = 'USD' }) => {
   };
 
   const handlePay = () => {
-    // Placeholder for payment functionality
     alert(`Payment of ${currency} ${totalAmount.toFixed(2)} initiated!`);
   };
 
@@ -80,12 +80,34 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({ currency = 'USD' }) => {
     }).format(amount);
   };
 
+  // Minimized trigger button
+  if (!isVisible) {
+    return (
+      <button
+        onClick={() => setIsVisible(true)}
+        className="absolute top-4 right-4 z-50 bg-background text-foreground p-3 rounded-full shadow-lg hover:bg-muted transition-all border border-border"
+      >
+        <Receipt className="w-6 h-6" />
+      </button>
+    );
+  }
+
   return (
     <div className="absolute top-4 right-4 w-[300px] max-h-[85vh] bg-background rounded-xl shadow-2xl flex flex-col z-50 border border-border overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-border shrink-0">
-        <h2 className="text-lg font-bold text-foreground">Trip Expenses</h2>
-        <p className="text-xs text-muted-foreground">Pre-trip payments & bookings</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Trip Expenses</h2>
+            <p className="text-xs text-muted-foreground">Pre-trip payments & bookings</p>
+          </div>
+          <button 
+            onClick={() => setIsVisible(false)} 
+            className="text-muted-foreground hover:text-destructive p-1 rounded-full hover:bg-muted"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Expenses List */}
