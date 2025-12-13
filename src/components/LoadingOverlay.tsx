@@ -1,66 +1,43 @@
-import { useState, useEffect } from 'react';
-import { Plane, MapPin, Utensils, Hotel, Calendar, Sparkles } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 const loadingMessages = [
-  { text: "Searching for the best flights...", icon: Plane },
-  { text: "Discovering hidden gems...", icon: MapPin },
-  { text: "Curating local restaurants...", icon: Utensils },
-  { text: "Finding perfect accommodations...", icon: Hotel },
-  { text: "Planning your daily itinerary...", icon: Calendar },
-  { text: "Adding final touches...", icon: Sparkles },
+  "Searching for flights...",
+  "Checking local events...",
+  "Curating restaurants...",
+  "Finding hidden gems...",
+  "Optimizing your budget...",
+  "Planning activities...",
+  "Checking weather forecasts...",
+  "Almost there...",
 ];
 
-export const LoadingOverlay = () => {
+const LoadingOverlay = () => {
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
-    }, 4000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const CurrentIcon = loadingMessages[messageIndex].icon;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
-      <div className="flex flex-col items-center gap-8 text-center px-6">
-        {/* Animated rings */}
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" style={{ width: '120px', height: '120px', margin: '-10px' }} />
-          <div className="absolute inset-0 rounded-full border-2 border-coral-light/30 animate-spin-slow" style={{ width: '140px', height: '140px', margin: '-20px' }} />
-          <div className="w-24 h-24 rounded-full gradient-hero flex items-center justify-center shadow-glow">
-            <CurrentIcon className="w-10 h-10 text-primary-foreground animate-float" />
-          </div>
-        </div>
-
-        {/* Message */}
-        <div className="space-y-3">
-          <h3 className="text-2xl font-display font-semibold text-foreground animate-fade-in-up" key={messageIndex}>
-            {loadingMessages[messageIndex].text}
-          </h3>
-          <p className="text-muted-foreground font-body">
-            Our AI is crafting your perfect journey
-          </p>
-        </div>
-
-        {/* Progress dots */}
-        <div className="flex gap-2">
-          {loadingMessages.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                index === messageIndex
-                  ? 'bg-primary w-6'
-                  : index < messageIndex
-                  ? 'bg-primary/60'
-                  : 'bg-muted-foreground/30'
-              }`}
-            />
-          ))}
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+      <div className="bg-card p-8 rounded-2xl shadow-xl text-center max-w-md">
+        <Loader2 className="h-16 w-16 text-secondary animate-spin mx-auto mb-6" />
+        <h2 className="text-xl font-bold text-foreground mb-2">Creating Your Itinerary</h2>
+        <p className="text-secondary animate-pulse">{loadingMessages[messageIndex]}</p>
+        <div className="mt-6 w-full bg-muted rounded-full h-2 overflow-hidden">
+          <div 
+            className="h-full w-1/2 rounded-full animate-pulse"
+            style={{ background: "linear-gradient(to right, hsl(var(--secondary)), hsl(195 86% 41%))" }}
+          />
         </div>
       </div>
     </div>
   );
 };
+
+export default LoadingOverlay;
