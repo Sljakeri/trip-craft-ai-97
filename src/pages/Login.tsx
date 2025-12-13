@@ -50,9 +50,9 @@ const Login = () => {
           
           <button type="submit" className="confirm-btn">LOG IN</button>
           
-          <p className="mt-4 text-sm">
+          <p className="mt-4 text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-secondary hover:underline">Sign up</Link>
+            <Link to="/signup" className="text-primary font-medium hover:underline transition-colors duration-200">Sign up</Link>
           </p>
         </form>
       </div>
