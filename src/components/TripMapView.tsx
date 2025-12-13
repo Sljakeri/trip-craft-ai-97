@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, MapPin, X, Menu, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Clean perplexity references like [1], [2], [1][4] from text
@@ -93,7 +93,6 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [showSteps, setShowSteps] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Process API data into app format
   const processApiData = useCallback(() => {
@@ -353,10 +352,20 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       markersRef.current.push(marker);
     });
 
-    // Fit bounds
-    if (itinerary.length > 0) {
+    // Fit bounds with generous padding to ensure all routes are visible
+    if (itinerary.length > 0 && mapRef.current) {
       const bounds = L.latLngBounds(itinerary.map(item => item.coords));
-      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+      // Add all route geometries to bounds
+      routeLayersRef.current.forEach(rl => {
+        if ('getBounds' in rl.layer && rl.layer.getBounds) {
+          try {
+            bounds.extend((rl.layer as any).getBounds());
+          } catch (e) {
+            // Polylines may not have getBounds
+          }
+        }
+      });
+      mapRef.current.fitBounds(bounds, { padding: [100, 100], maxZoom: 14 });
     }
   }, []);
 
@@ -447,32 +456,10 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
   const currentItem = currentItinerary[currentStepIndex];
 
-  // Toggle fullscreen
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-    // Invalidate map size after transition
-    setTimeout(() => {
-      mapRef.current?.invalidateSize();
-    }, 300);
-  };
-
   return (
-    <div className={`relative w-full transition-all duration-300 ${
-      isFullscreen 
-        ? 'fixed inset-0 z-[9999] h-screen' 
-        : 'h-[calc(100vh-80px)] min-h-[600px]'
-    }`}>
-      {/* Map */}
+    <div className="relative w-full h-[calc(100vh-64px)]">
+      {/* Map - takes full page */}
       <div ref={mapContainer} className="absolute inset-0 z-0" />
-
-      {/* Fullscreen Toggle Button */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute top-4 right-4 z-50 bg-background text-foreground p-3 rounded-full shadow-lg hover:bg-muted transition-all border border-border"
-        title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-      >
-        {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-      </button>
 
       {/* Minimized Trigger */}
       {!sidebarVisible && (

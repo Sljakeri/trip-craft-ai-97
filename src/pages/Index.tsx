@@ -111,7 +111,7 @@ const Index = () => {
 
   if (tripResults) {
     return (
-      <Layout>
+      <Layout hideFooter>
         <TripResults data={tripResults} onNewTrip={handleNewTrip} destinationCity={destination} />
       </Layout>
     );
