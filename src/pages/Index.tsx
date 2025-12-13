@@ -40,11 +40,7 @@ const Index = () => {
   const { toast } = useToast();
 
   const toggleTransport = (type: string) => {
-    setSelectedTransport(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
+    setSelectedTransport((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +72,7 @@ const Index = () => {
     setTripResults(null);
 
     try {
-      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
+      const response = await fetch("https://bubatron28.app.n8n.cloud/webhook-test/bb609b3a-9f45", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,14 +120,10 @@ const Index = () => {
   return (
     <Layout>
       {isLoading && <LoadingOverlay />}
-      
+
       <div className="hero-container">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-          Plan Your Perfect Trip with AI
-        </h1>
-        <p className="text-secondary mb-8">
-          Select your preferences and let our algorithms do the rest.
-        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Plan Your Perfect Trip with AI</h1>
+        <p className="text-secondary mb-8">Select your preferences and let our algorithms do the rest.</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
@@ -144,7 +136,7 @@ const Index = () => {
                 placeholder="e.g. London, Chicago..."
               />
             </div>
-            
+
             <div className="input-group min-w-[200px]">
               <label htmlFor="destination">Where to go?</label>
               <CityAutocomplete
@@ -154,7 +146,7 @@ const Index = () => {
                 placeholder="e.g. Tokyo, Paris..."
               />
             </div>
-            
+
             <div className="input-group min-w-[140px]">
               <label htmlFor="date-from">From</label>
               <Input
@@ -165,7 +157,7 @@ const Index = () => {
                 className="w-full px-3 py-3 border-2 border-border rounded-lg"
               />
             </div>
-            
+
             <div className="input-group min-w-[140px]">
               <label htmlFor="date-to">To</label>
               <Input
@@ -190,7 +182,7 @@ const Index = () => {
                 className="w-full px-3 py-3 border-2 border-border rounded-lg"
               />
             </div>
-            
+
             <div className="input-group min-w-[140px]">
               <label htmlFor="budget">Budget ($)</label>
               <Input
