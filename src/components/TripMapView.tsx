@@ -95,11 +95,50 @@ interface LegacyCityInfo {
   currency: string;
 }
 
+interface BudgetAnalysis {
+  user_total_budget: number;
+  estimated_logistics_cost: number;
+  is_feasible: boolean;
+  warning_message: string;
+}
+
+interface LogisticsSummary {
+  transport_mode: string;
+  total_transport_cost_estimate: number;
+  currency: string;
+}
+
+interface FlightDetails {
+  one_way_avg_price: number;
+  round_trip_avg_price: number;
+  suggested_airlines: string[];
+}
+
+interface SuggestedHotel {
+  name: string;
+  cost_per_night: number;
+  rating: string;
+  coordinates: { lat: number; lon: number };
+}
+
+interface AccommodationDay {
+  day_number: number;
+  date: string;
+  suggested_hotels: SuggestedHotel[];
+  daily_gas_estimate: number | null;
+}
+
 interface TripData {
   // New format
   trip_overview?: TripOverview;
   local_logistics?: LocalLogistics;
   daily_itinerary?: DayItinerary[];
+  // Budget data
+  budget_analysis?: BudgetAnalysis;
+  logistics_summary?: LogisticsSummary;
+  flight_details?: FlightDetails | null;
+  accommodation_plan?: AccommodationDay[];
+  dining_manifest?: DiningSpot[];
   // Legacy format
   city_info?: LegacyCityInfo;
   must_see_destinations?: LegacyDestination[];
@@ -680,6 +719,11 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
         currency={currency} 
         dailyItinerary={data.daily_itinerary}
         currentDayIndex={currentDayIndex}
+        budgetAnalysis={data.budget_analysis}
+        logisticsSummary={data.logistics_summary}
+        flightDetails={data.flight_details}
+        accommodationPlan={data.accommodation_plan}
+        diningManifest={data.dining_manifest}
       />
     </div>
   );
