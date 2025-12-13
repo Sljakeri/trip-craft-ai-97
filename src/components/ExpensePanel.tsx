@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Plane, Hotel, Car, Utensils, Ticket, X, CreditCard, Receipt, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Plane, Hotel, Car, Utensils, Ticket, X, CreditCard, Receipt, Calendar, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle, Fuel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,7 +15,7 @@ interface Expense {
   category: 'flight' | 'hotel' | 'transport' | 'food' | 'activity';
   name: string;
   amount: number;
-  dayNumber?: number; // Optional: which day it belongs to
+  dayNumber?: number;
 }
 
 interface DiningSpot {
@@ -48,6 +48,50 @@ interface DayItinerary {
   activities: Activity[];
 }
 
+interface BudgetAnalysis {
+  user_total_budget: number;
+  estimated_logistics_cost: number;
+  is_feasible: boolean;
+  warning_message: string;
+}
+
+interface LogisticsSummary {
+  transport_mode: string;
+  total_transport_cost_estimate: number;
+  currency: string;
+}
+
+interface FlightDetails {
+  one_way_avg_price: number;
+  round_trip_avg_price: number;
+  suggested_airlines: string[];
+}
+
+interface SuggestedHotel {
+  name: string;
+  cost_per_night: number;
+  rating: string;
+  coordinates: { lat: number; lon: number };
+}
+
+interface AccommodationDay {
+  day_number: number;
+  date: string;
+  suggested_hotels: SuggestedHotel[];
+  daily_gas_estimate: number | null;
+}
+
+interface ExpensePanelProps {
+  currency?: string;
+  dailyItinerary?: DayItinerary[];
+  currentDayIndex?: number | 'all';
+  budgetAnalysis?: BudgetAnalysis;
+  logisticsSummary?: LogisticsSummary;
+  flightDetails?: FlightDetails | null;
+  accommodationPlan?: AccommodationDay[];
+  diningManifest?: DiningSpot[];
+}
+
 const categoryIcons = {
   flight: Plane,
   hotel: Hotel,
@@ -64,16 +108,14 @@ const categoryLabels = {
   activity: 'Activity',
 };
 
-interface ExpensePanelProps {
-  currency?: string;
-  dailyItinerary?: DayItinerary[];
-  currentDayIndex?: number | 'all';
-}
-
 const ExpensePanel: React.FC<ExpensePanelProps> = ({ 
   currency = 'USD', 
   dailyItinerary = [],
-  currentDayIndex = 0 
+  currentDayIndex = 0,
+  budgetAnalysis,
+  logisticsSummary,
+  flightDetails,
+  accommodationPlan = [],
 }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -88,6 +130,7 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
 
   const days = dailyItinerary || [];
   const currentDay = days[selectedDayIndex];
+  const currentAccommodation = accommodationPlan[selectedDayIndex];
 
   // Filter expenses based on view mode
   const filteredExpenses = viewMode === 'all' 
@@ -96,6 +139,15 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
 
   const totalAmount = expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const dayTotalAmount = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+  // Calculate estimated costs from webhook data
+  const estimatedTransportCost = logisticsSummary?.total_transport_cost_estimate || 0;
+  const estimatedHotelCost = accommodationPlan.reduce((sum, day) => {
+    const cheapestHotel = day.suggested_hotels?.[0]?.cost_per_night || 0;
+    return sum + cheapestHotel;
+  }, 0);
+  const estimatedGasCost = accommodationPlan.reduce((sum, day) => sum + (day.daily_gas_estimate || 0), 0);
+  const totalEstimatedCost = budgetAnalysis?.estimated_logistics_cost || (estimatedTransportCost + estimatedHotelCost + estimatedGasCost);
 
   const handleAddExpense = () => {
     if (!newExpense.name || !newExpense.amount) return;
@@ -122,10 +174,12 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
   };
 
   const formatCurrency = (amount: number) => {
+    const currencyCode = logisticsSummary?.currency || currency;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency === 'EUR' ? 'EUR' : currency === 'GBP' ? 'GBP' : 'USD',
-      minimumFractionDigits: 2,
+      currency: currencyCode === 'EUR' ? 'EUR' : currencyCode === 'GBP' ? 'GBP' : 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -147,13 +201,13 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
   }
 
   return (
-    <div className="absolute top-4 right-4 w-[320px] max-h-[85vh] bg-background rounded-xl shadow-2xl flex flex-col z-50 border border-border overflow-hidden">
+    <div className="absolute top-4 right-4 w-[340px] max-h-[85vh] bg-background rounded-xl shadow-2xl flex flex-col z-50 border border-border overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-border shrink-0">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h2 className="text-lg font-bold text-foreground">Trip Expenses</h2>
-            <p className="text-xs text-muted-foreground">Pre-trip payments & bookings</p>
+            <h2 className="text-lg font-bold text-foreground">Trip Budget</h2>
+            <p className="text-xs text-muted-foreground">Estimated costs & expenses</p>
           </div>
           <button 
             onClick={() => setIsVisible(false)} 
@@ -162,6 +216,31 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Budget Feasibility Alert */}
+        {budgetAnalysis && (
+          <div className={`p-3 rounded-lg mb-3 ${
+            budgetAnalysis.is_feasible 
+              ? 'bg-green-50 border border-green-200' 
+              : 'bg-amber-50 border border-amber-200'
+          }`}>
+            <div className="flex items-start gap-2">
+              {budgetAnalysis.is_feasible ? (
+                <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              )}
+              <div>
+                <p className={`text-xs font-medium ${budgetAnalysis.is_feasible ? 'text-green-800' : 'text-amber-800'}`}>
+                  {budgetAnalysis.is_feasible ? 'Budget looks good!' : 'Budget Warning'}
+                </p>
+                {budgetAnalysis.warning_message && budgetAnalysis.warning_message !== 'None' && (
+                  <p className="text-xs text-amber-700 mt-0.5">{budgetAnalysis.warning_message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* View Mode Toggle */}
         {days.length > 0 && (
@@ -180,7 +259,7 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
                 viewMode === 'all' ? 'bg-background shadow text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              All Expenses
+              Overview
             </button>
           </div>
         )}
@@ -212,116 +291,247 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
         )}
       </div>
 
-      {/* Day Activities Summary (when in day view) */}
-      {viewMode === 'day' && currentDay && currentDay.activities.length > 0 && (
-        <div className="px-4 py-2 border-b border-border bg-muted/30">
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[10px] font-bold uppercase text-muted-foreground">Today's Activities</span>
-          </div>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
-            {currentDay.activities.map((activity, idx) => (
-              <div key={idx} className="flex items-center justify-between text-xs py-1">
-                <span className="text-foreground truncate flex-1">{activity.name}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
-                  activity.is_free 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {activity.is_free ? 'Free' : activity.cost_tier}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Expenses List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {filteredExpenses.length === 0 && !isAdding ? (
-          <div className="text-center py-6 text-muted-foreground">
-            <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No expenses {viewMode === 'day' ? 'for this day' : 'added yet'}</p>
-            <p className="text-xs">Add your bookings below</p>
-          </div>
-        ) : (
-          filteredExpenses.map(expense => {
-            const Icon = categoryIcons[expense.category];
-            return (
-              <div
-                key={expense.id}
-                className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg group"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{expense.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {categoryLabels[expense.category]}
-                    {expense.dayNumber && <span className="ml-1 opacity-70">• Day {expense.dayNumber}</span>}
-                  </p>
-                </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Overview Mode - Show all estimates */}
+        {viewMode === 'all' && (
+          <div className="p-4 space-y-4">
+            {/* Transport Costs */}
+            {logisticsSummary && (
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">
-                    {formatCurrency(expense.amount)}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveExpense(expense.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity"
-                  >
-                    <X className="w-3 h-3 text-destructive" />
-                  </button>
+                  <Car className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Transport</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-foreground">{logisticsSummary.transport_mode}</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatCurrency(logisticsSummary.total_transport_cost_estimate)}
+                    </span>
+                  </div>
+                  {flightDetails && (
+                    <div className="text-xs text-muted-foreground space-y-1 pt-1 border-t border-border">
+                      <div className="flex justify-between">
+                        <span>Round trip avg:</span>
+                        <span>{formatCurrency(flightDetails.round_trip_avg_price)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Airlines:</span>
+                        <span>{flightDetails.suggested_airlines?.slice(0, 2).join(', ')}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            );
-          })
+            )}
+
+            {/* Accommodation Costs */}
+            {accommodationPlan.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Hotel className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Accommodation</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  {accommodationPlan.map((day, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Night {day.day_number}</span>
+                      <span className="text-foreground">
+                        {day.suggested_hotels?.[0] ? (
+                          <span title={day.suggested_hotels[0].name}>
+                            {formatCurrency(day.suggested_hotels[0].cost_per_night)}
+                          </span>
+                        ) : '—'}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
+                    <span className="text-sm font-medium text-foreground">Total</span>
+                    <span className="text-sm font-semibold text-foreground">{formatCurrency(estimatedHotelCost)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Gas Costs (if driving) */}
+            {estimatedGasCost > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Fuel className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Fuel Estimate</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-foreground">Total gas</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(estimatedGasCost)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Budget Summary */}
+            {budgetAnalysis && (
+              <div className="bg-primary/5 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Your Budget</span>
+                  <span className="font-medium text-foreground">{formatCurrency(budgetAnalysis.user_total_budget)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Estimated Costs</span>
+                  <span className="font-medium text-foreground">{formatCurrency(totalEstimatedCost)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm pt-2 border-t border-border">
+                  <span className="font-medium text-foreground">Remaining</span>
+                  <span className={`font-bold ${(budgetAnalysis.user_total_budget - totalEstimatedCost) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(budgetAnalysis.user_total_budget - totalEstimatedCost)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
-        {/* Add Expense Form */}
-        {isAdding && (
-          <div className="p-3 bg-muted/50 rounded-lg space-y-3 border border-border">
-            <Select
-              value={newExpense.category}
-              onValueChange={(value: Expense['category']) => 
-                setNewExpense(prev => ({ ...prev, category: value }))
-              }
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="flight">✈️ Flight</SelectItem>
-                <SelectItem value="hotel">🏨 Hotel</SelectItem>
-                <SelectItem value="transport">🚗 Transport</SelectItem>
-                <SelectItem value="food">🍽️ Food & Dining</SelectItem>
-                <SelectItem value="activity">🎫 Activity</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Input
-              placeholder="Description (e.g., Round trip to Paris)"
-              value={newExpense.name}
-              onChange={e => setNewExpense(prev => ({ ...prev, name: e.target.value }))}
-              className="h-9"
-            />
-            
-            <Input
-              type="number"
-              placeholder="Amount"
-              value={newExpense.amount}
-              onChange={e => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
-              className="h-9"
-            />
-            
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1" onClick={handleAddExpense}>
-                Add
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setIsAdding(false)}>
-                Cancel
-              </Button>
-            </div>
+        {/* Day View - Show day-specific info */}
+        {viewMode === 'day' && (
+          <div className="p-4 space-y-4">
+            {/* Hotel for this day */}
+            {currentAccommodation?.suggested_hotels?.[0] && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Hotel className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Tonight's Stay</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{currentAccommodation.suggested_hotels[0].name}</p>
+                      <p className="text-xs text-muted-foreground">{currentAccommodation.suggested_hotels[0].rating}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatCurrency(currentAccommodation.suggested_hotels[0].cost_per_night)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Gas for this day */}
+            {currentAccommodation?.daily_gas_estimate && currentAccommodation.daily_gas_estimate > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Fuel className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Fuel</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-foreground">Today's gas estimate</span>
+                    <span className="font-semibold text-foreground">
+                      {formatCurrency(currentAccommodation.daily_gas_estimate)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Day Activities */}
+            {currentDay && currentDay.activities.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Activities</span>
+                </div>
+                <div className="space-y-1.5">
+                  {currentDay.activities.map((activity, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2">
+                      <span className="text-sm text-foreground truncate flex-1">{activity.name}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        activity.is_free 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {activity.is_free ? 'Free' : activity.cost_tier}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Custom Expenses */}
+            {filteredExpenses.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold uppercase text-muted-foreground">Your Expenses</span>
+                </div>
+                <div className="space-y-1.5">
+                  {filteredExpenses.map(expense => {
+                    const Icon = categoryIcons[expense.category];
+                    return (
+                      <div key={expense.id} className="flex items-center gap-3 bg-muted/50 rounded-lg px-3 py-2 group">
+                        <Icon className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-sm text-foreground truncate flex-1">{expense.name}</span>
+                        <span className="text-sm font-medium text-foreground">{formatCurrency(expense.amount)}</span>
+                        <button
+                          onClick={() => handleRemoveExpense(expense.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity"
+                        >
+                          <X className="w-3 h-3 text-destructive" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add Expense Form */}
+            {isAdding && (
+              <div className="p-3 bg-muted/50 rounded-lg space-y-3 border border-border">
+                <Select
+                  value={newExpense.category}
+                  onValueChange={(value: Expense['category']) => 
+                    setNewExpense(prev => ({ ...prev, category: value }))
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flight">✈️ Flight</SelectItem>
+                    <SelectItem value="hotel">🏨 Hotel</SelectItem>
+                    <SelectItem value="transport">🚗 Transport</SelectItem>
+                    <SelectItem value="food">🍽️ Food & Dining</SelectItem>
+                    <SelectItem value="activity">🎫 Activity</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Input
+                  placeholder="Description"
+                  value={newExpense.name}
+                  onChange={e => setNewExpense(prev => ({ ...prev, name: e.target.value }))}
+                  className="h-9"
+                />
+                
+                <Input
+                  type="number"
+                  placeholder="Amount"
+                  value={newExpense.amount}
+                  onChange={e => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
+                  className="h-9"
+                />
+                
+                <div className="flex gap-2">
+                  <Button size="sm" className="flex-1" onClick={handleAddExpense}>
+                    Add
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsAdding(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -335,33 +545,28 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
             onClick={() => setIsAdding(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Expense {viewMode === 'day' && days.length > 0 ? `(Day ${selectedDayIndex + 1})` : ''}
+            Add Expense
           </Button>
         )}
 
-        {/* Day Total (when in day view) */}
-        {viewMode === 'day' && days.length > 0 && (
-          <div className="flex items-center justify-between py-1 text-sm">
-            <span className="text-muted-foreground">Day {selectedDayIndex + 1} Total</span>
-            <span className="font-semibold text-foreground">{formatCurrency(dayTotalAmount)}</span>
-          </div>
+        {/* Total with custom expenses */}
+        {expenses.length > 0 && (
+          <>
+            <div className="flex items-center justify-between py-2 border-t border-dashed border-border">
+              <span className="text-sm font-medium text-muted-foreground">Your Bookings</span>
+              <span className="text-lg font-bold text-foreground">{formatCurrency(totalAmount)}</span>
+            </div>
+
+            <Button
+              className="w-full h-11 text-base font-semibold"
+              disabled={totalAmount === 0}
+              onClick={handlePay}
+            >
+              <CreditCard className="w-5 h-5 mr-2" />
+              Pay {formatCurrency(totalAmount)}
+            </Button>
+          </>
         )}
-
-        {/* Grand Total */}
-        <div className="flex items-center justify-between py-2 border-t border-dashed border-border">
-          <span className="text-sm font-medium text-muted-foreground">Grand Total</span>
-          <span className="text-xl font-bold text-foreground">{formatCurrency(totalAmount)}</span>
-        </div>
-
-        {/* Pay Button */}
-        <Button
-          className="w-full h-11 text-base font-semibold"
-          disabled={totalAmount === 0}
-          onClick={handlePay}
-        >
-          <CreditCard className="w-5 h-5 mr-2" />
-          Pay {formatCurrency(totalAmount)}
-        </Button>
       </div>
     </div>
   );
