@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ArrowUp, Info, Crown, Headphones, User, UserPlus } from "lucide-react";
+import { Menu, X, Sparkles, ArrowUp, Info, Crown, Headphones, User, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,12 +23,14 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-white">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-[22px] tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
-          <img src={logo} alt="NexTravel AI" className="h-10 w-auto" />
-          NexTravel AI
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
+          <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
+            <Sparkles size={18} />
+          </div>
+          NexTravel
         </Link>
 
         {/* Desktop Navigation */}
@@ -66,7 +67,7 @@ const Header = () => {
 
       {/* Mobile Dropdown */}
       {isOpen && (
-        <div className="md:hidden border-t border-border bg-white p-4 space-y-1 shadow-lg">
+        <div className="md:hidden border-t border-border bg-card p-4 space-y-1 shadow-lg">
           {menuItems.map((item, index) =>
             item.divider ? (
               <hr key={index} className="border-0 h-px bg-border my-2" />

@@ -443,11 +443,11 @@ const Index = () => {
     <Layout>
       {isLoading && <LoadingOverlay />}
 
-      <section className="relative pt-8 pb-16 overflow-hidden bg-white">
+      <section className="relative pt-8 pb-16 overflow-hidden bg-background">
         <div className="container mx-auto px-4 max-w-5xl">
           <HeroSection />
 
-          <Card className="max-w-4xl mx-auto p-6 shadow-xl bg-white relative z-10 text-left border-l-4 border-l-primary border-t border-r border-b border-border">
+          <Card className="max-w-4xl mx-auto p-6 shadow-xl bg-card/80 backdrop-blur-sm relative z-10 text-left">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Locations Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 @layer base {
-  :root,
-  .light,
-  html {
+  :root {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 240 10% 4%;
     
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 4%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 4%;
     
-    --primary: 239 84% 67%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
     
     --secondary: 240 5% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary-foreground: 240 6% 10%;
     
     --muted: 240 5% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 240 4% 46%;
     
-    --accent: 239 84% 67%;
+    --accent: 243 75% 59%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 239 84% 67%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 243 75% 59%;
     
     --radius: 0.5rem;
+    
+    --neutral-gray: 240 4% 46%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -43,81 +43,46 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 239 84% 67%;
-
-    color-scheme: light;
-  }
-
-  /* Force light mode even if user prefers dark */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: 0 0% 100%;
-      --foreground: 222 47% 11%;
-      
-      --card: 0 0% 100%;
-      --card-foreground: 222 47% 11%;
-      
-      --popover: 0 0% 100%;
-      --popover-foreground: 222 47% 11%;
-      
-      --primary: 239 84% 67%;
-      --primary-foreground: 0 0% 100%;
-      
-      --secondary: 240 5% 96%;
-      --secondary-foreground: 222 47% 11%;
-      
-      --muted: 240 5% 96%;
-      --muted-foreground: 215 16% 47%;
-      
-      --accent: 239 84% 67%;
-      --accent-foreground: 0 0% 100%;
-      
-      --destructive: 0 84% 60%;
-      --destructive-foreground: 0 0% 100%;
-      
-      --border: 220 13% 91%;
-      --input: 220 13% 91%;
-      --ring: 239 84% 67%;
-    }
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 240 10% 4%;
     --foreground: 0 0% 98%;
     
-    --card: 222 47% 11%;
+    --card: 240 10% 8%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 222 47% 11%;
+    --popover: 240 10% 8%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 239 84% 67%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 217 33% 17%;
+    --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
     
-    --accent: 239 84% 67%;
+    --accent: 243 75% 59%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 239 84% 67%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 243 75% 59%;
 
-    --sidebar-background: 222 47% 11%;
+    --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -126,20 +91,15 @@
     @apply border-border;
   }
   
-  html, body {
-    background-color: #ffffff;
-    color: #1e293b;
-  }
-  
   body {
-    @apply antialiased;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 }
 
 @layer components {
   .hero-container {
-    @apply bg-white p-8 md:p-12 rounded-2xl shadow-lg w-full max-w-4xl text-center border border-border;
+    @apply bg-card p-8 md:p-12 rounded-2xl shadow-lg w-full max-w-4xl text-center border border-muted;
   }
   
   .auth-container {
@@ -163,23 +123,25 @@
   }
   
   .transport-btn {
-    @apply flex-1 min-w-[100px] px-4 py-3 border-2 border-border bg-white text-foreground rounded-lg cursor-pointer font-semibold transition-all duration-300 flex items-center justify-center gap-2;
+    @apply flex-1 min-w-[100px] px-4 py-3 border-2 border-border bg-card text-foreground rounded-lg cursor-pointer font-semibold transition-all duration-300 flex items-center justify-center gap-2;
   }
   
   .transport-btn:hover {
-    @apply border-primary text-primary;
+    @apply border-secondary text-secondary;
   }
   
   .transport-btn.selected {
-    @apply text-white border-primary bg-primary shadow-lg;
+    @apply text-white border-secondary shadow-lg;
+    background: linear-gradient(45deg, hsl(var(--secondary)), hsl(195 86% 41%));
   }
   
   .confirm-btn {
-    @apply w-full py-4 text-white border-none rounded-lg text-lg font-bold cursor-pointer mt-5 transition-all duration-300 hover:shadow-xl bg-primary;
+    @apply w-full py-4 text-primary-foreground border-none rounded-lg text-lg font-bold cursor-pointer mt-5 transition-all duration-300 hover:shadow-xl;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(222 33% 21%));
   }
   
   .confirm-btn:hover {
-    @apply bg-primary/90;
+    background: linear-gradient(90deg, hsl(222 33% 21%), hsl(var(--primary)));
   }
   
   .info-grid {
@@ -187,7 +149,7 @@
   }
   
   .info-card {
-    @apply bg-white p-8 rounded-xl shadow-md text-center border border-border transition-shadow duration-300 hover:shadow-lg;
+    @apply bg-card p-8 rounded-xl shadow-md text-center border border-muted transition-shadow duration-300 hover:shadow-lg;
   }
   
   .pricing-grid {
@@ -195,15 +157,15 @@
   }
   
   .pricing-card {
-    @apply bg-white p-8 rounded-2xl shadow-lg w-[300px] text-center relative border border-border;
+    @apply bg-card p-8 rounded-2xl shadow-lg w-[300px] text-center relative border border-border;
   }
   
   .pricing-card.popular {
-    @apply scale-105 border-2 border-primary shadow-xl z-10;
+    @apply scale-105 border-2 border-secondary shadow-xl z-10;
   }
   
   .pricing-card .badge {
-    @apply absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-bold;
+    @apply absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-white px-4 py-1 rounded-full text-sm font-bold;
   }
   
   .pricing-card .price {
@@ -219,7 +181,7 @@
   }
   
   .settings-section h3 {
-    @apply mb-4 text-primary;
+    @apply mb-4 text-secondary;
   }
   
   .setting-item {
@@ -227,11 +189,11 @@
   }
   
   .autocomplete-items {
-    @apply absolute border border-border border-t-0 z-50 top-full left-0 right-0 rounded-b-lg bg-white max-h-40 overflow-y-auto list-none p-0 m-0;
+    @apply absolute border border-border border-t-0 z-50 top-full left-0 right-0 rounded-b-lg bg-card max-h-40 overflow-y-auto list-none p-0 m-0;
   }
   
   .autocomplete-items li {
-    @apply px-3 py-2.5 cursor-pointer bg-white border-b border-border hover:bg-muted hover:text-primary;
+    @apply px-3 py-2.5 cursor-pointer bg-card border-b border-border hover:bg-muted hover:text-secondary;
   }
 }
 
@@ -252,14 +214,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #6366f1;
+  background: hsl(var(--secondary));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4f46e5;
+  background: hsl(var(--secondary) / 0.8);
 }

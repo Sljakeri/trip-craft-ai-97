@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, ChevronDown, MapPin, X, Menu, Coffee, Utensils, Trees } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // Clean perplexity references like [1], [2], [1][4] from text
 const cleanPerplexityRefs = (text: string): string => {
@@ -34,20 +33,10 @@ interface CityInfo {
   currency: string;
 }
 
-interface RechargingSpot {
-  name: string;
-  type: string;
-  cost_tier: string;
-  description: string;
-  coordinates: { lat: number; lng: number };
-  crowd_scores: CrowdScores;
-}
-
 interface TripData {
   city_info?: CityInfo;
   must_see_destinations?: Destination[];
   hidden_gems?: HiddenGem[];
-  nearby_recharging_spots?: RechargingSpot[];
 }
 
 interface TripMapViewProps {
@@ -104,20 +93,6 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [showSteps, setShowSteps] = useState(false);
-  const [rechargingSpotsOpen, setRechargingSpotsOpen] = useState(false);
-  const [routeFinished, setRouteFinished] = useState(false);
-
-  // Helper to get icon for recharging spot type
-  const getSpotIcon = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType.includes('restaurant') || lowerType.includes('food') || lowerType.includes('market')) {
-      return <Utensils className="w-4 h-4" />;
-    }
-    if (lowerType.includes('park') || lowerType.includes('garden')) {
-      return <Trees className="w-4 h-4" />;
-    }
-    return <Coffee className="w-4 h-4" />;
-  };
 
   // Process API data into app format
   const processApiData = useCallback(() => {
@@ -655,14 +630,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                     Back
                   </Button>
                   <Button
-                    onClick={() => {
-                      if (currentStepIndex === currentItinerary.length - 1) {
-                        setRouteFinished(true);
-                        setRechargingSpotsOpen(true);
-                      } else {
-                        setCurrentStepIndex(i => Math.min(currentItinerary.length - 1, i + 1));
-                      }
-                    }}
+                    onClick={() => setCurrentStepIndex(i => Math.min(currentItinerary.length - 1, i + 1))}
                     className={`flex-[2] h-9 text-xs ${currentStepIndex === currentItinerary.length - 1 ? 'bg-green-600 hover:bg-green-700' : ''}`}
                   >
                     {currentStepIndex === currentItinerary.length - 1 ? 'Finish Trip' : 'Next Stop'}
@@ -670,68 +638,6 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                   </Button>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Recharging Spots Section - Always at bottom */}
-          {data.nearby_recharging_spots && data.nearby_recharging_spots.length > 0 && (
-            <div className="border-t border-border shrink-0">
-              <Collapsible open={rechargingSpotsOpen} onOpenChange={setRechargingSpotsOpen}>
-                <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold text-foreground">
-                      {routeFinished ? '🎉 Free Time - Nearby Spots' : 'Nearby Recharging Spots'}
-                    </span>
-                    {routeFinished && (
-                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        NEW
-                      </span>
-                    )}
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${rechargingSpotsOpen ? 'rotate-180' : ''}`} />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="px-4 pb-4 space-y-3 max-h-[300px] overflow-y-auto">
-                    {routeFinished && (
-                      <p className="text-xs text-muted-foreground bg-green-50 p-2 rounded-lg">
-                        You've completed your main route! Here are some sponsored spots for your free time.
-                      </p>
-                    )}
-                    {data.nearby_recharging_spots.map((spot, idx) => (
-                      <div 
-                        key={idx} 
-                        className="bg-muted/50 rounded-lg p-3 border border-border hover:border-primary/30 transition-colors cursor-pointer"
-                        onClick={() => {
-                          if (mapRef.current) {
-                            mapRef.current.flyTo([spot.coordinates.lat, spot.coordinates.lng], 16, { animate: true, duration: 1 });
-                          }
-                        }}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            {getSpotIcon(spot.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="text-sm font-semibold text-foreground truncate">{cleanPerplexityRefs(spot.name)}</h4>
-                              <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0">
-                                {spot.cost_tier}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-medium text-muted-foreground bg-background px-1.5 py-0.5 rounded">
-                              {spot.type}
-                            </span>
-                            <p className="text-[11px] text-muted-foreground mt-1.5 line-clamp-2">
-                              {cleanPerplexityRefs(spot.description)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
             </div>
           )}
         </div>

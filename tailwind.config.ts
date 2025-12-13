@@ -51,6 +51,17 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        coral: {
+          DEFAULT: "hsl(var(--coral))",
+          light: "hsl(var(--coral-light))",
+        },
+        ocean: {
+          DEFAULT: "hsl(var(--ocean))",
+          dark: "hsl(var(--ocean-dark))",
+        },
+        sand: "hsl(var(--sand))",
+        sunset: "hsl(var(--sunset))",
+        midnight: "hsl(var(--midnight))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -66,6 +77,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        'glow': 'var(--shadow-glow)',
+        'soft': 'var(--shadow-md)',
+        'lifted': 'var(--shadow-lg)',
+        'elevated': 'var(--shadow-xl)',
       },
       keyframes: {
         "accordion-down": {
