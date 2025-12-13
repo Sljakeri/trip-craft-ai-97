@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  .light,
+  html {
     --background: 0 0% 100%;
     --foreground: 240 10% 4%;
     
@@ -44,6 +46,41 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    color-scheme: light;
+  }
+
+  /* Force light mode - override any dark mode preferences */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 240 10% 4%;
+      
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 4%;
+      
+      --popover: 0 0% 100%;
+      --popover-foreground: 240 10% 4%;
+      
+      --primary: 243 75% 59%;
+      --primary-foreground: 0 0% 100%;
+      
+      --secondary: 240 5% 96%;
+      --secondary-foreground: 240 6% 10%;
+      
+      --muted: 240 5% 96%;
+      --muted-foreground: 240 4% 46%;
+      
+      --accent: 243 75% 59%;
+      --accent-foreground: 0 0% 100%;
+      
+      --destructive: 0 84% 60%;
+      --destructive-foreground: 0 0% 100%;
+      
+      --border: 240 6% 90%;
+      --input: 240 6% 90%;
+      --ring: 243 75% 59%;
+    }
   }
 
   .dark {
@@ -91,8 +128,13 @@
     @apply border-border;
   }
   
+  html, body {
+    background-color: #ffffff !important;
+    color: hsl(240 10% 4%);
+  }
+  
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply antialiased;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 }
