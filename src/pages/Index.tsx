@@ -81,7 +81,7 @@ const Index = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ body: tripData }),
+        body: JSON.stringify(tripData),
       });
 
       if (!response.ok) {
