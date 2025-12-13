@@ -201,7 +201,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
           budget: formData?.budget || null,
           travelers_adults: formData?.travelers?.adults || 1,
           travelers_kids: formData?.travelers?.kids || 0,
-          transport_modes: formData?.transport || [],
+          transport_modes: formData?.transport ? (Array.isArray(formData.transport) ? formData.transport : [formData.transport]) : [],
           crowd_preference: formData?.crowdPreference || null,
           trip_data: data as unknown as Record<string, unknown>,
         }] as any);
