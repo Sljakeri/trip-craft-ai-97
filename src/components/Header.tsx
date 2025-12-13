@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sparkles, ArrowUp, Info, Crown, Headphones, User, UserPlus } from "lucide-react";
+import { Menu, X, Send, ArrowUp, Info, Crown, Headphones, User, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -23,14 +23,12 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-card backdrop-blur supports-[backdrop-filter]:bg-card/95">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
-          <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
-            <Sparkles size={18} />
-          </div>
-          NexTravel
+        <Link to="/" className="flex items-center gap-2 font-bold text-[22px] tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
+          <Send size={20} className="text-primary" />
+          NexTravel AI
         </Link>
 
         {/* Desktop Navigation */}
