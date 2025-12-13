@@ -1,22 +1,68 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Mail, Lock, User } from "lucide-react";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { signUp, user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/");
+    }
+  }, [user, loading, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const validation = signupSchema.safeParse({ name, email, password });
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const { error } = await signUp(email, password, name);
+    setIsSubmitting(false);
+
+    if (error) {
+      let message = error.message;
+      if (message.includes("User already registered")) {
+        message = "An account with this email already exists. Please log in instead.";
+      }
+      toast({
+        title: "Sign Up Failed",
+        description: message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
-      title: "Sign Up",
-      description: "Account created successfully!",
+      title: "Account Created!",
+      description: "Welcome to NexTravel AI. You are now logged in.",
     });
+    navigate("/");
   };
 
   const handleGoogleSignup = () => {
@@ -25,6 +71,16 @@ const Signup = () => {
       description: "Google Sign-Up coming soon!",
     });
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <main className="flex justify-center items-center px-5 py-20 bg-slate-100 min-h-[calc(100vh-140px)]">
+          <div className="text-slate-500">Loading...</div>
+        </main>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -110,9 +166,10 @@ const Signup = () => {
 
             <button
               type="submit"
-              className="w-full h-14 rounded-full border-none bg-primary text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] mt-3"
+              disabled={isSubmitting}
+              className="w-full h-14 rounded-full border-none bg-primary text-white text-base font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
