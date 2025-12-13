@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, MapPin, X, Menu, Save, Check } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu, Save, Check, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { usePendingTrip } from '@/hooks/usePendingTrip';
+import { useNavigate } from 'react-router-dom';
 
 // Clean perplexity references like [1], [2], [1][4] from text
 const cleanPerplexityRefs = (text: string): string => {
@@ -99,6 +101,8 @@ interface RouteLayer {
 const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationCity, formData, isSavedTrip = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { savePendingTrip } = usePendingTrip();
+  const navigate = useNavigate();
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
@@ -116,11 +120,21 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
   const handleSaveTrip = async () => {
     if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to save your trip.",
-        variant: "destructive",
+      // Save trip data to localStorage and redirect to login
+      savePendingTrip({
+        tripData: data,
+        formData: {
+          ...formData,
+          dateFrom: formData?.dateFrom?.toISOString() || undefined,
+          dateTo: formData?.dateTo?.toISOString() || undefined,
+        },
+        destinationCity,
       });
+      toast({
+        title: "Login to Save",
+        description: "Redirecting you to login. Your trip will be saved automatically.",
+      });
+      navigate("/login?redirect=save-trip");
       return;
     }
 
