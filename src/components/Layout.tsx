@@ -4,16 +4,17 @@ import Footer from "./Footer";
 
 interface LayoutProps {
   children: ReactNode;
+  hideFooter?: boolean;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 flex justify-center items-center p-8">
+      <main className={`flex-1 flex justify-center ${hideFooter ? '' : 'items-center p-8'}`}>
         {children}
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 };
