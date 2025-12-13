@@ -434,7 +434,12 @@ const Index = () => {
   if (tripResults) {
     return (
       <Layout hideFooter>
-        <TripResults data={tripResults} onNewTrip={handleNewTrip} destinationCity={formData.destination} />
+        <TripResults 
+          data={tripResults} 
+          onNewTrip={handleNewTrip} 
+          destinationCity={formData.destination}
+          formData={formData}
+        />
       </Layout>
     );
   }

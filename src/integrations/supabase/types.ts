@@ -41,6 +41,60 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_trips: {
+        Row: {
+          budget: string | null
+          created_at: string
+          crowd_preference: string | null
+          destination: string
+          end_date: string | null
+          id: string
+          name: string
+          origin: string | null
+          start_date: string | null
+          transport_modes: string[] | null
+          travelers_adults: number | null
+          travelers_kids: number | null
+          trip_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          crowd_preference?: string | null
+          destination: string
+          end_date?: string | null
+          id?: string
+          name: string
+          origin?: string | null
+          start_date?: string | null
+          transport_modes?: string[] | null
+          travelers_adults?: number | null
+          travelers_kids?: number | null
+          trip_data: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          crowd_preference?: string | null
+          destination?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          origin?: string | null
+          start_date?: string | null
+          transport_modes?: string[] | null
+          travelers_adults?: number | null
+          travelers_kids?: number | null
+          trip_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

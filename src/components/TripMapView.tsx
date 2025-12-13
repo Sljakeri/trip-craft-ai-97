@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ArrowLeft, ChevronRight, MapPin, X, Menu } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, X, Menu, Save, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Clean perplexity references like [1], [2], [1][4] from text
 const cleanPerplexityRefs = (text: string): string => {
@@ -39,10 +42,23 @@ interface TripData {
   hidden_gems?: HiddenGem[];
 }
 
+interface FormData {
+  origin?: string;
+  destination?: string;
+  dateFrom?: Date | null;
+  dateTo?: Date | null;
+  travelers?: { adults: number; kids: number };
+  budget?: string;
+  transport?: string[];
+  crowdPreference?: string;
+}
+
 interface TripMapViewProps {
   data: TripData;
   onNewTrip: () => void;
   destinationCity: string;
+  formData?: FormData;
+  isSavedTrip?: boolean;
 }
 
 interface ProcessedLocation {
@@ -80,7 +96,9 @@ interface RouteLayer {
   isVehicle: boolean;
 }
 
-const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationCity }) => {
+const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationCity, formData, isSavedTrip = false }) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
@@ -93,6 +111,58 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [showSteps, setShowSteps] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSaveTrip = async () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to save your trip.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const tripName = `Trip to ${destinationCity}`;
+      
+      const { error } = await supabase
+        .from("saved_trips")
+        .insert([{
+          user_id: user.id,
+          name: tripName,
+          origin: formData?.origin || null,
+          destination: destinationCity,
+          start_date: formData?.dateFrom ? formData.dateFrom.toISOString().split('T')[0] : null,
+          end_date: formData?.dateTo ? formData.dateTo.toISOString().split('T')[0] : null,
+          budget: formData?.budget || null,
+          travelers_adults: formData?.travelers?.adults || 1,
+          travelers_kids: formData?.travelers?.kids || 0,
+          transport_modes: formData?.transport || [],
+          crowd_preference: formData?.crowdPreference || null,
+          trip_data: data as unknown as Record<string, unknown>,
+        }] as any);
+
+      if (error) throw error;
+
+      setIsSaved(true);
+      toast({
+        title: "Trip Saved!",
+        description: "You can view it anytime in your saved trips.",
+      });
+    } catch (error: any) {
+      console.error("Error saving trip:", error);
+      toast({
+        title: "Save Failed",
+        description: error.message || "Could not save the trip. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Process API data into app format
   const processApiData = useCallback(() => {
@@ -523,6 +593,33 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
                 New
               </Button>
             </div>
+
+            {/* Save Button - only show if not already a saved trip */}
+            {!isSavedTrip && (
+              <Button 
+                onClick={handleSaveTrip} 
+                disabled={isSaving || isSaved || !user}
+                variant={isSaved ? "outline" : "secondary"}
+                className="w-full h-9 text-sm mb-3"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : isSaved ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Saved!
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    {user ? "Save Trip" : "Login to Save"}
+                  </>
+                )}
+              </Button>
+            )}
 
             {/* Start info */}
             <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground bg-muted px-3 py-2 rounded-lg">
