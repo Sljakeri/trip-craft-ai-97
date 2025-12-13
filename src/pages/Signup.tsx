@@ -63,9 +63,9 @@ const Signup = () => {
           
           <button type="submit" className="confirm-btn">CREATE ACCOUNT</button>
           
-          <p className="mt-4 text-sm">
+          <p className="mt-4 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-secondary hover:underline">Log in</Link>
+            <Link to="/login" className="text-primary font-medium hover:underline transition-colors duration-200">Log in</Link>
           </p>
         </form>
       </div>

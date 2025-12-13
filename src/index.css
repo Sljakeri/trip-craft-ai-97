@@ -56,6 +56,10 @@
     @apply bg-background text-foreground antialiased;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   }
+
+  button, a, input, select, textarea {
+    @apply transition-all duration-200 ease-in-out;
+  }
 }
 
 @layer components {
