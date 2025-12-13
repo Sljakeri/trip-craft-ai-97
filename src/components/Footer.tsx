@@ -1,56 +1,55 @@
 import { Link } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-primary text-muted-foreground py-12 px-8 mt-auto">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div className="md:col-span-1">
-          <h3 className="text-primary-foreground mb-4 text-lg font-bold">NexTravel AI</h3>
-          <p className="text-sm">Revolutionizing travel with intelligent planning.</p>
+    <footer className="bg-background border-t border-border py-12 text-sm">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 font-bold text-lg mb-4 text-foreground">
+              <div className="bg-primary text-primary-foreground p-1 rounded">
+                <Sparkles size={14} />
+              </div>
+              NexTravel
+            </div>
+            <p className="text-muted-foreground mb-4">Revolutionizing travel with intelligent, crowd-aware planning.</p>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Company</h4>
+            <ul className="space-y-2 text-muted-foreground">
+              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Press</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Resources</h4>
+            <ul className="space-y-2 text-muted-foreground">
+              <li><a href="#" className="hover:text-primary transition-colors">Crowd Index</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+              <li><Link to="/support" className="hover:text-primary transition-colors">Help Center</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-semibold text-foreground mb-3">Legal</h4>
+            <ul className="space-y-2 text-muted-foreground">
+              <li><a href="#" className="hover:text-primary transition-colors">Privacy</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Terms</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Cookie Settings</a></li>
+            </ul>
+          </div>
         </div>
         
-        <div>
-          <h4 className="text-primary-foreground mb-4 font-semibold">Company</h4>
-          <Link to="/about" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            About Us
-          </Link>
-          <a href="#" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Careers
-          </a>
-          <a href="#" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Press
-          </a>
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between text-muted-foreground">
+          <p>&copy; 2025 NexTravel Inc. All rights reserved.</p>
+          <div className="flex gap-4 mt-2 md:mt-0">
+            <span>Made with ❤️ for the planet</span>
+          </div>
         </div>
-        
-        <div>
-          <h4 className="text-primary-foreground mb-4 font-semibold">Support</h4>
-          <Link to="/support" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Help Center
-          </Link>
-          <Link to="/support" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Contact Us
-          </Link>
-          <a href="#" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Refund Policy
-          </a>
-        </div>
-        
-        <div>
-          <h4 className="text-primary-foreground mb-4 font-semibold">Legal</h4>
-          <a href="#" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Privacy Policy
-          </a>
-          <a href="#" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Terms of Service
-          </a>
-          <Link to="/settings" className="block text-muted-foreground no-underline mb-2 text-sm hover:text-secondary transition-colors">
-            Cookie Settings
-          </Link>
-        </div>
-      </div>
-      
-      <div className="text-center mt-8 pt-4 border-t border-primary-foreground/20 text-xs">
-        &copy; 2024 NexTravel AI Inc. All rights reserved.
       </div>
     </footer>
   );

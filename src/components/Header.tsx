@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Plane, User, UserPlus, Info, Crown, Headphones, Settings } from "lucide-react";
+import { Menu, X, Sparkles, ArrowUp, Info, Crown, Headphones, User, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const navLinks = [
+    { href: "/about", label: "About" },
+    { href: "/premium", label: "Premium" },
+    { href: "/support", label: "Support" },
+  ];
 
   const menuItems = [
     { href: "/login", icon: User, label: "Log In" },
@@ -13,50 +20,75 @@ const Header = () => {
     { href: "/about", icon: Info, label: "About AI" },
     { href: "/premium", icon: Crown, label: "Premium Plans" },
     { href: "/support", icon: Headphones, label: "Support" },
-    { href: "/settings", icon: Settings, label: "Settings" },
   ];
 
   return (
-    <header className="bg-card px-4 md:px-8 py-4 flex justify-between items-center shadow-md relative z-50 border-b-2 border-secondary">
-      <Link to="/" className="flex items-center gap-2 text-foreground no-underline">
-        <Plane className="h-6 w-6 text-secondary" />
-        <span className="text-xl font-bold">NexTravel AI</span>
-      </Link>
-
-      <div className="relative">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-transparent border-none text-2xl text-foreground cursor-pointer transition-colors hover:text-secondary"
-          aria-label="Menu"
-        >
-          <Menu className="h-7 w-7" />
-        </button>
-
-        {isOpen && (
-          <div className="absolute top-full right-0 w-64 bg-card shadow-xl rounded-bl-lg overflow-hidden">
-            <ul className="list-none p-0 m-0">
-              {menuItems.map((item, index) =>
-                item.divider ? (
-                  <hr key={index} className="border-0 h-px bg-border my-0" />
-                ) : (
-                  <li key={item.href}>
-                    <Link
-                      to={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-5 py-4 text-foreground no-underline border-b border-muted transition-colors hover:bg-muted hover:text-secondary ${
-                        location.pathname === item.href ? "bg-muted text-secondary" : ""
-                      }`}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  </li>
-                )
-              )}
-            </ul>
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
+          <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
+            <Sparkles size={18} />
           </div>
-        )}
+          NexTravel
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-4">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={`text-sm font-medium transition-colors ${
+                location.pathname === link.href 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link to="/login">
+            <Button variant="outline" size="sm">Login</Button>
+          </Link>
+          <Link to="/signup">
+            <Button size="sm">
+              Get Started
+              <ArrowUp size={14} className="ml-2 rotate-45" />
+            </Button>
+          </Link>
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        <button className="md:hidden p-2 text-foreground" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X /> : <Menu />}
+        </button>
       </div>
+
+      {/* Mobile Dropdown */}
+      {isOpen && (
+        <div className="md:hidden border-t border-border bg-card p-4 space-y-1 shadow-lg">
+          {menuItems.map((item, index) =>
+            item.divider ? (
+              <hr key={index} className="border-0 h-px bg-border my-2" />
+            ) : (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === item.href 
+                    ? "bg-muted text-primary" 
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            )
+          )}
+        </div>
+      )}
     </header>
   );
 };
