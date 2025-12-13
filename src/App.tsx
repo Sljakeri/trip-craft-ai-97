@@ -11,6 +11,7 @@ import Premium from "./pages/Premium";
 import Support from "./pages/Support";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ChatbotWidget from "./components/ChatbotWidget";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ChatbotWidget />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
