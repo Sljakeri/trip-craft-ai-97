@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePendingTrip } from "@/hooks/usePendingTrip";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, User } from "lucide-react";
 import { z } from "zod";
 
@@ -21,12 +23,60 @@ const Signup = () => {
   const { toast } = useToast();
   const { signUp, user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { getPendingTrip, clearPendingTrip } = usePendingTrip();
+
+  const savePendingTripToDb = async (userId: string) => {
+    const pendingTrip = getPendingTrip();
+    if (!pendingTrip) return;
+
+    try {
+      const { error } = await supabase
+        .from("saved_trips")
+        .insert([{
+          user_id: userId,
+          name: `Trip to ${pendingTrip.destinationCity}`,
+          origin: pendingTrip.formData?.origin || null,
+          destination: pendingTrip.destinationCity,
+          start_date: pendingTrip.formData?.dateFrom ? new Date(pendingTrip.formData.dateFrom).toISOString().split('T')[0] : null,
+          end_date: pendingTrip.formData?.dateTo ? new Date(pendingTrip.formData.dateTo).toISOString().split('T')[0] : null,
+          budget: pendingTrip.formData?.budget || null,
+          travelers_adults: pendingTrip.formData?.travelers?.adults || 1,
+          travelers_kids: pendingTrip.formData?.travelers?.kids || 0,
+          transport_modes: pendingTrip.formData?.transport || [],
+          crowd_preference: pendingTrip.formData?.crowdPreference || null,
+          trip_data: pendingTrip.tripData,
+        }] as any);
+
+      if (error) throw error;
+
+      clearPendingTrip();
+      toast({
+        title: "Trip Saved!",
+        description: "Your trip has been saved to your profile.",
+      });
+      navigate("/saved-trips");
+    } catch (error: any) {
+      console.error("Error saving pending trip:", error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save trip. Please try again from your trips.",
+        variant: "destructive",
+      });
+      navigate("/");
+    }
+  };
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/");
+      const redirect = searchParams.get("redirect");
+      if (redirect === "save-trip") {
+        savePendingTripToDb(user.id);
+      } else {
+        navigate("/");
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
