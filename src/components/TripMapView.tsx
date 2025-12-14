@@ -45,37 +45,31 @@ const fetchAllRoutes = async (
 ): Promise<void> => {
   if (coordinates.length < 2) return;
   
-  // First, always draw fallback straight lines immediately so something is visible
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    L.polyline([coordinates[i], coordinates[i + 1]], {
-      color: '#94a3b8', // slate color for fallback
-      weight: 2,
-      opacity: 0.5,
-      dashArray: '6, 6'
-    }).addTo(layerGroup);
-  }
-  
-  // Then try to fetch the actual road route
+  // Try to fetch the actual road route first
   try {
     const routeCoords = await fetchOSRMRoute(coordinates);
     
     if (routeCoords && routeCoords.length > 0) {
-      // Clear fallback lines and draw real route
-      layerGroup.eachLayer((layer) => {
-        if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
-          layerGroup.removeLayer(layer);
-        }
-      });
-      
+      // Draw real road route
       L.polyline(routeCoords, {
         color: '#4f46e5',
         weight: 4,
         opacity: 0.85
       }).addTo(layerGroup);
+      return;
     }
   } catch (error) {
-    // Keep fallback lines if OSRM fails
-    console.warn('Route fetch failed, keeping fallback lines');
+    console.warn('Route fetch failed, using fallback lines');
+  }
+  
+  // Fallback: draw straight dashed lines if OSRM fails
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    L.polyline([coordinates[i], coordinates[i + 1]], {
+      color: '#4f46e5',
+      weight: 3,
+      opacity: 0.6,
+      dashArray: '8, 8'
+    }).addTo(layerGroup);
   }
 };
 
@@ -366,51 +360,60 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
     });
 
-    // Draw dining spots for current activity only
-    if (currentActivity?.nearby_context?.dining_spots) {
-      currentActivity.nearby_context.dining_spots.forEach((spot) => {
-        const coords: [number, number] = [spot.coordinates.lat, spot.coordinates.lon];
-        
-        const diningIcon = L.divIcon({
-          className: 'dining-marker',
-          html: `<div style="width:24px;height:24px;border-radius:50%;background:#f97316;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">🍽️</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 24],
-          popupAnchor: [0, -24]
-        });
-
-        const marker = L.marker(coords, { icon: diningIcon })
-          .bindPopup(`<div class="font-bold text-sm text-gray-900">${spot.name}</div><div class="text-xs text-gray-600">${spot.type}</div>`)
-          .addTo(routeLayerGroupRef.current!);
-        
-        diningMarkersRef.current.push(marker);
-      });
-    }
-
     // Draw routes using OSRM for road-based routing
     const drawRoutes = async () => {
       if (!routeLayerGroupRef.current) return;
       
-      let coordsToRoute: [number, number][] = [];
-      
       if (currentDayIndex === 'all') {
         // In "all" view, show full route connecting all activities
-        coordsToRoute = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
-      } else if (currentDay && currentDay.activities.length > 1) {
-        // In day-by-day view, only show route from current activity to the next one
-        const activities = currentDay.activities;
-        if (currentActivityIndex < activities.length - 1) {
-          const currentAct = activities[currentActivityIndex];
-          const nextAct = activities[currentActivityIndex + 1];
-          coordsToRoute = [
-            [currentAct.coordinates.lat, currentAct.coordinates.lon],
-            [nextAct.coordinates.lat, nextAct.coordinates.lon]
-          ];
+        const coordsToRoute = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+        if (coordsToRoute.length > 1) {
+          await fetchAllRoutes(coordsToRoute, routeLayerGroupRef.current);
         }
-      }
-      
-      if (coordsToRoute.length > 1) {
-        await fetchAllRoutes(coordsToRoute, routeLayerGroupRef.current);
+      } else if (currentDay && currentDay.activities.length > 1) {
+        // In day-by-day view, draw route segment by segment
+        const activities = currentDay.activities;
+        
+        for (let i = 0; i < activities.length - 1; i++) {
+          const fromAct = activities[i];
+          const toAct = activities[i + 1];
+          const coords: [number, number][] = [
+            [fromAct.coordinates.lat, fromAct.coordinates.lon],
+            [toAct.coordinates.lat, toAct.coordinates.lon]
+          ];
+          
+          // Current segment is highlighted, others are dimmed
+          const isCurrentSegment = i === currentActivityIndex;
+          const isPastSegment = i < currentActivityIndex;
+          
+          try {
+            const routeCoords = await fetchOSRMRoute(coords);
+            if (routeCoords && routeCoords.length > 0) {
+              L.polyline(routeCoords, {
+                color: isCurrentSegment ? '#4f46e5' : (isPastSegment ? '#94a3b8' : '#a5b4fc'),
+                weight: isCurrentSegment ? 5 : 3,
+                opacity: isCurrentSegment ? 0.9 : 0.5,
+                dashArray: isPastSegment ? '6, 6' : undefined
+              }).addTo(routeLayerGroupRef.current!);
+            } else {
+              // Fallback to straight line
+              L.polyline(coords, {
+                color: isCurrentSegment ? '#4f46e5' : '#a5b4fc',
+                weight: isCurrentSegment ? 4 : 2,
+                opacity: isCurrentSegment ? 0.8 : 0.4,
+                dashArray: '8, 8'
+              }).addTo(routeLayerGroupRef.current!);
+            }
+          } catch {
+            // Fallback to straight line
+            L.polyline(coords, {
+              color: isCurrentSegment ? '#4f46e5' : '#a5b4fc',
+              weight: isCurrentSegment ? 4 : 2,
+              opacity: 0.5,
+              dashArray: '8, 8'
+            }).addTo(routeLayerGroupRef.current!);
+          }
+        }
       }
     };
     
