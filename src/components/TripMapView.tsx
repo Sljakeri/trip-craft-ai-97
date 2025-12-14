@@ -15,27 +15,54 @@ const cleanPerplexityRefs = (text: string): string => {
   return text.replace(/\[\d+\](\[\d+\])*/g, '').trim();
 };
 
-// Fetch route from OSRM (free routing service)
-const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number, number][] | null> => {
+// Fetch route from OSRM (free routing service) with retry logic
+const fetchOSRMRoute = async (coordinates: [number, number][], retries = 2): Promise<[number, number][] | null> => {
   if (coordinates.length < 2) return null;
   
   // OSRM expects lon,lat format
   const coordString = coordinates.map(c => `${c[1]},${c[0]}`).join(';');
   const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
   
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
-      // Convert from [lon, lat] to [lat, lon] for Leaflet
-      return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
+      const data = await response.json();
+      
+      if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
+        // Convert from [lon, lat] to [lat, lon] for Leaflet
+        return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
+      }
+      return null;
+    } catch (error) {
+      console.warn(`OSRM routing attempt ${attempt + 1} failed:`, error);
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 500 * (attempt + 1))); // Backoff
+      }
     }
-    return null;
-  } catch (error) {
-    console.error('OSRM routing error:', error);
-    return null;
   }
+  return null;
+};
+
+// Fetch routes segment by segment (more reliable for long routes)
+const fetchSegmentedRoutes = async (coordinates: [number, number][]): Promise<[number, number][][]> => {
+  const segments: [number, number][][] = [];
+  
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const segment = await fetchOSRMRoute([coordinates[i], coordinates[i + 1]], 1);
+    if (segment) {
+      segments.push(segment);
+    } else {
+      // Fallback: straight line for this segment
+      segments.push([coordinates[i], coordinates[i + 1]]);
+    }
+  }
+  
+  return segments;
 };
 
 interface CrowdScores {
@@ -346,7 +373,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
     }
 
-    // Draw routes using OSRM for road-based routing
+    // Draw routes using OSRM for road-based routing (segment by segment for reliability)
     const drawRoutes = async () => {
       if (!routeLayerGroupRef.current) return;
       
@@ -359,23 +386,22 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
       
       if (coordsToRoute.length > 1) {
-        const routeCoords = await fetchOSRMRoute(coordsToRoute);
+        // Fetch routes segment by segment for better reliability
+        const routeSegments = await fetchSegmentedRoutes(coordsToRoute);
         
-        if (routeCoords && routeLayerGroupRef.current) {
-          L.polyline(routeCoords, {
+        routeSegments.forEach((segment, index) => {
+          if (!routeLayerGroupRef.current) return;
+          
+          // Check if it's a real route (more than 2 points) or fallback straight line
+          const isRealRoute = segment.length > 2;
+          
+          L.polyline(segment, {
             color: '#4f46e5',
-            weight: 4,
-            opacity: 0.8
+            weight: isRealRoute ? 4 : 3,
+            opacity: isRealRoute ? 0.8 : 0.6,
+            dashArray: isRealRoute ? undefined : '8, 8'
           }).addTo(routeLayerGroupRef.current);
-        } else if (routeLayerGroupRef.current) {
-          // Fallback to straight lines if OSRM fails
-          L.polyline(coordsToRoute, {
-            color: '#4f46e5',
-            weight: 3,
-            opacity: 0.6,
-            dashArray: '8, 8'
-          }).addTo(routeLayerGroupRef.current);
-        }
+        });
       }
     };
     
