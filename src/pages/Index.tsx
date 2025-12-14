@@ -67,7 +67,6 @@ const reviews = {
     { src: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=64&h=64&q=80&fit=crop", alt: "User 2" },
     { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&q=80&fit=crop", alt: "User 3" },
     { src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&q=80&fit=crop", alt: "User 4" },
-    { src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&q=80&fit=crop", alt: "User 5" },
   ],
 };
 
