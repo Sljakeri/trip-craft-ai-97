@@ -61,7 +61,7 @@ const MAJOR_CITIES = [
 ];
 
 const reviews = {
-  count: 1200,
+  count: 4,
   avatars: [
     { src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&q=80&fit=crop", alt: "User 1" },
     { src: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=64&h=64&q=80&fit=crop", alt: "User 2" },
@@ -383,10 +383,10 @@ const Index = () => {
       // Find where the first JSON object ends and second begins
       let braceCount = 0;
       let splitIndex = -1;
-      
+
       for (let i = 0; i < responseText.length; i++) {
-        if (responseText[i] === '{') braceCount++;
-        if (responseText[i] === '}') braceCount--;
+        if (responseText[i] === "{") braceCount++;
+        if (responseText[i] === "}") braceCount--;
         if (braceCount === 0 && i > 0) {
           splitIndex = i + 1;
           break;
@@ -396,10 +396,10 @@ const Index = () => {
       if (splitIndex > 0 && splitIndex < responseText.length) {
         const firstPart = responseText.substring(0, splitIndex).trim();
         const secondPart = responseText.substring(splitIndex).trim();
-        
+
         console.log("First JSON part:", firstPart.substring(0, 100) + "...");
         console.log("Second JSON part:", secondPart.substring(0, 100) + "...");
-        
+
         itineraryData = JSON.parse(firstPart);
         expensesData = JSON.parse(secondPart);
       } else {
@@ -478,9 +478,9 @@ const Index = () => {
   if (tripResults) {
     return (
       <Layout hideFooter>
-        <TripResults 
-          data={tripResults} 
-          onNewTrip={handleNewTrip} 
+        <TripResults
+          data={tripResults}
+          onNewTrip={handleNewTrip}
           destinationCity={formData.destination}
           formData={formData}
         />
