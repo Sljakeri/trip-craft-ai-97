@@ -41,8 +41,8 @@ const defaultTiers = [
   {
     name: "Pro",
     price: {
-      monthly: 49,
-      yearly: 470,
+      monthly: 9.99,
+      yearly: 99.99,
     },
     description: "Ideal for frequent travelers and families",
     highlight: true,
