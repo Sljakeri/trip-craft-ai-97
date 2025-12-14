@@ -370,13 +370,55 @@ const Index = () => {
 
       if (!response.ok) throw new Error("Service unavailable");
 
-      const tripData_response = await response.json();
-      console.log("Trip data received:", tripData_response);
+      // The webhook returns two separate JSON objects concatenated together
+      // We need to parse them separately and merge them
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
 
-      // The webhook returns complete data including:
-      // - trip_overview, local_logistics, daily_itinerary (itinerary data)
-      // - budget_analysis, logistics_summary, flight_details, accommodation_plan, dining_manifest (expense data)
-      setTripResults(tripData_response);
+      // Split the response into two JSON objects by finding the closing brace of the first object
+      // The pattern is: {...itinerary...}\n{...expenses...}
+      let itineraryData: any = {};
+      let expensesData: any = {};
+
+      // Find where the first JSON object ends and second begins
+      let braceCount = 0;
+      let splitIndex = -1;
+      
+      for (let i = 0; i < responseText.length; i++) {
+        if (responseText[i] === '{') braceCount++;
+        if (responseText[i] === '}') braceCount--;
+        if (braceCount === 0 && i > 0) {
+          splitIndex = i + 1;
+          break;
+        }
+      }
+
+      if (splitIndex > 0 && splitIndex < responseText.length) {
+        const firstPart = responseText.substring(0, splitIndex).trim();
+        const secondPart = responseText.substring(splitIndex).trim();
+        
+        console.log("First JSON part:", firstPart.substring(0, 100) + "...");
+        console.log("Second JSON part:", secondPart.substring(0, 100) + "...");
+        
+        itineraryData = JSON.parse(firstPart);
+        expensesData = JSON.parse(secondPart);
+      } else {
+        // Fallback: try parsing as single JSON object
+        itineraryData = JSON.parse(responseText);
+      }
+
+      // Merge both responses into trip results
+      const mergedData = {
+        ...itineraryData,
+        budget_analysis: expensesData.budget_analysis,
+        logistics_summary: expensesData.logistics_summary,
+        flight_details: expensesData.flight_details,
+        accommodation_plan: expensesData.accommodation_plan,
+        dining_manifest: expensesData.dining_manifest,
+      };
+
+      console.log("Merged data:", mergedData);
+      setTripResults(mergedData);
     } catch (error) {
       console.error("Error:", error);
       toast({
