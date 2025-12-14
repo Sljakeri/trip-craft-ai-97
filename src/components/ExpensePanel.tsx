@@ -134,7 +134,9 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
     const gasCost = accommodationPlan.reduce((sum, day) => sum + (day.daily_gas_estimate || 0), 0);
     const customExpenseTotal = customExpenses.reduce((sum, exp) => sum + exp.amount, 0);
     const estimated = budgetAnalysis?.estimated_logistics_cost || (transportCost + hotelCost);
-    const grandTotal = transportCost + hotelCost + gasCost + customExpenseTotal;
+    const subtotal = transportCost + hotelCost + gasCost + customExpenseTotal;
+    const serviceFee = subtotal * 0.05;
+    const grandTotal = subtotal + serviceFee;
 
     return {
       transport: transportCost,
@@ -142,6 +144,8 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
       gas: gasCost,
       custom: customExpenseTotal,
       estimated,
+      subtotal,
+      serviceFee,
       grandTotal,
       remaining: (budgetAnalysis?.user_total_budget || 0) - grandTotal,
     };
@@ -514,6 +518,18 @@ const ExpensePanel: React.FC<ExpensePanelProps> = ({
               <span className="text-foreground">{formatCurrency(costs.custom)}</span>
             </div>
           )}
+        </div>
+
+        {/* Subtotal */}
+        <div className="flex items-center justify-between pt-3 border-t border-dashed border-border">
+          <span className="text-sm text-muted-foreground">Subtotal</span>
+          <span className="text-sm font-medium text-foreground">{formatCurrency(costs.subtotal)}</span>
+        </div>
+
+        {/* Service Fee */}
+        <div className="flex items-center justify-between py-1">
+          <span className="text-sm text-muted-foreground">Service fee (5%)</span>
+          <span className="text-sm font-medium text-foreground">{formatCurrency(costs.serviceFee)}</span>
         </div>
 
         {/* Grand Total */}
