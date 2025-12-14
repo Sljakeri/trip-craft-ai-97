@@ -371,46 +371,43 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
           await fetchAllRoutes(coordsToRoute, routeLayerGroupRef.current);
         }
       } else if (currentDay && currentDay.activities.length > 1) {
-        // In day-by-day view, draw route segment by segment
+        // In day-by-day view, ONLY show route from current activity to next activity
         const activities = currentDay.activities;
         
-        for (let i = 0; i < activities.length - 1; i++) {
-          const fromAct = activities[i];
-          const toAct = activities[i + 1];
+        // Only draw if there's a next activity
+        if (currentActivityIndex < activities.length - 1) {
+          const fromAct = activities[currentActivityIndex];
+          const toAct = activities[currentActivityIndex + 1];
           const coords: [number, number][] = [
             [fromAct.coordinates.lat, fromAct.coordinates.lon],
             [toAct.coordinates.lat, toAct.coordinates.lon]
           ];
           
-          // Current segment is highlighted, others are dimmed
-          const isCurrentSegment = i === currentActivityIndex;
-          const isPastSegment = i < currentActivityIndex;
-          
           try {
             const routeCoords = await fetchOSRMRoute(coords);
             if (routeCoords && routeCoords.length > 0) {
+              // Draw road-based route
               L.polyline(routeCoords, {
-                color: isCurrentSegment ? '#4f46e5' : (isPastSegment ? '#94a3b8' : '#a5b4fc'),
-                weight: isCurrentSegment ? 5 : 3,
-                opacity: isCurrentSegment ? 0.9 : 0.5,
-                dashArray: isPastSegment ? '6, 6' : undefined
+                color: '#4f46e5',
+                weight: 5,
+                opacity: 0.85
               }).addTo(routeLayerGroupRef.current!);
             } else {
-              // Fallback to straight line
+              // Fallback to straight line if OSRM fails
               L.polyline(coords, {
-                color: isCurrentSegment ? '#4f46e5' : '#a5b4fc',
-                weight: isCurrentSegment ? 4 : 2,
-                opacity: isCurrentSegment ? 0.8 : 0.4,
-                dashArray: '8, 8'
+                color: '#4f46e5',
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 6'
               }).addTo(routeLayerGroupRef.current!);
             }
           } catch {
-            // Fallback to straight line
+            // Fallback to straight line on error
             L.polyline(coords, {
-              color: isCurrentSegment ? '#4f46e5' : '#a5b4fc',
-              weight: isCurrentSegment ? 4 : 2,
-              opacity: 0.5,
-              dashArray: '8, 8'
+              color: '#4f46e5',
+              weight: 4,
+              opacity: 0.7,
+              dashArray: '10, 6'
             }).addTo(routeLayerGroupRef.current!);
           }
         }
