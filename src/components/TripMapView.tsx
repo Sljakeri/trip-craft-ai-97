@@ -226,7 +226,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
   const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const diningMarkersRef = useRef<L.Marker[]>([]);
 
-  const [currentDayIndex, setCurrentDayIndex] = useState<number | 'all'>(0);
+  const [currentDayIndex, setCurrentDayIndex] = useState<number | 'all'>('all');
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -463,16 +463,23 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     
     drawRoutes();
 
-    // Center map on current activity
-    if (currentActivity) {
-      const coords: [number, number] = [currentActivity.coordinates.lat, currentActivity.coordinates.lon];
-      mapRef.current.flyTo(coords, 15, { animate: true, duration: 0.6 });
-    } else {
-      // Fallback: fit bounds to show all activities
+    // Fit map to content
+    if (currentDayIndex === 'all') {
+      // Show entire trip in view
       const bounds = L.latLngBounds(
         activitiesToDraw.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
       );
-      mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: currentDayIndex === 'all' ? 12 : 15 });
+      mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 12 });
+    } else if (currentActivity) {
+      // Center on current activity for day view
+      const coords: [number, number] = [currentActivity.coordinates.lat, currentActivity.coordinates.lon];
+      mapRef.current.flyTo(coords, 15, { animate: true, duration: 0.6 });
+    } else {
+      // Fallback: fit bounds to day activities
+      const bounds = L.latLngBounds(
+        activitiesToDraw.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
+      );
+      mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
     }
   }, [currentDayIndex, currentDay, currentActivityIndex, currentActivity, allActivities, days]);
 
