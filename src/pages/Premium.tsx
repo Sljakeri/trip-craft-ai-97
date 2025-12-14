@@ -4,16 +4,15 @@ import { PricingSection } from "@/components/ui/pricing-section";
 
 const defaultTiers = [
   {
-    name: "Starter",
+    name: "Free",
     price: {
-      monthly: 15,
-      yearly: 144,
+      monthly: 0,
+      yearly: 0,
     },
     description: "Perfect for individuals and small trips",
     icon: (
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-500/30 to-gray-500/30 blur-2xl rounded-full" />
-        <Zap className="w-7 h-7 relative z-10 text-gray-500 dark:text-gray-400" />
+        <Zap className="w-7 h-7 relative z-10 text-primary" />
       </div>
     ),
     features: [
@@ -50,7 +49,7 @@ const defaultTiers = [
     badge: "Most Popular",
     icon: (
       <div className="relative">
-        <Sparkles className="w-7 h-7 relative z-10" />
+        <Sparkles className="w-7 h-7 relative z-10 text-primary" />
       </div>
     ),
     features: [
@@ -60,13 +59,13 @@ const defaultTiers = [
         included: true,
       },
       {
-        name: "Advanced Crowd Analytics",
-        description: "Real-time crowd predictions & alerts",
+        name: "Live Map Editing",
+        description: "Edit and customize your routes in real-time",
         included: true,
       },
       {
-        name: "Priority Support",
-        description: "24/7 priority email and chat support",
+        name: "Advanced Crowd Analytics",
+        description: "Real-time crowd predictions & alerts",
         included: true,
       },
       {
