@@ -463,11 +463,17 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     
     drawRoutes();
 
-    // Fit bounds to show all activities
-    const bounds = L.latLngBounds(
-      activitiesToDraw.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
-    );
-    mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: currentDayIndex === 'all' ? 12 : 15 });
+    // Center map on current activity
+    if (currentActivity) {
+      const coords: [number, number] = [currentActivity.coordinates.lat, currentActivity.coordinates.lon];
+      mapRef.current.flyTo(coords, 15, { animate: true, duration: 0.6 });
+    } else {
+      // Fallback: fit bounds to show all activities
+      const bounds = L.latLngBounds(
+        activitiesToDraw.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number])
+      );
+      mapRef.current.fitBounds(bounds, { padding: [60, 60], maxZoom: currentDayIndex === 'all' ? 12 : 15 });
+    }
   }, [currentDayIndex, currentDay, currentActivityIndex, currentActivity, allActivities, days]);
 
   // Focus on current activity
