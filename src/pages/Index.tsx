@@ -64,9 +64,9 @@ const reviews = {
   count: 4,
   avatars: [
     { src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&q=80&fit=crop", alt: "User 1" },
-    { src: "https://ik.imagekit.io/xr1wofn8u/20251214_103639.jpg", alt: "User 2" },
-    { src: "https://ik.imagekit.io/xr1wofn8u/20251214_103556.jpg", alt: "User 3" },
-    { src: "https://ik.imagekit.io/xr1wofn8u/20251214_103541.jpg", alt: "User 4" },
+    { src: "https://i.imgur.com/wOJ1IIO.jpeg", alt: "User 2" },
+    { src: "https://i.imgur.com/h5i7Up8.jpeg", alt: "User 3" },
+    { src: "https://i.imgur.com/V6wrbmT.jpeg", alt: "User 4" },
   ],
 };
 
