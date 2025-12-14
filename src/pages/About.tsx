@@ -24,12 +24,12 @@ const About = () => {
     <Layout>
       <div className="content-wrapper">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">How Our AI Works</h1>
-        <p className="text-secondary mb-8">The technology behind your perfect itinerary.</p>
+        <p className="text-muted-foreground mb-8">The technology behind your perfect itinerary.</p>
         
         <div className="info-grid">
           {features.map((feature, index) => (
             <div key={index} className="info-card">
-              <feature.icon className="h-12 w-12 text-secondary mx-auto mb-4" />
+              <feature.icon className="h-12 w-12 text-primary mx-auto mb-4" />
               <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>
             </div>
