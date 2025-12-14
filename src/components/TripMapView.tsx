@@ -394,9 +394,19 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       let coordsToRoute: [number, number][] = [];
       
       if (currentDayIndex === 'all') {
+        // In "all" view, show full route connecting all activities
         coordsToRoute = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
       } else if (currentDay && currentDay.activities.length > 1) {
-        coordsToRoute = currentDay.activities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
+        // In day-by-day view, only show route from current activity to the next one
+        const activities = currentDay.activities;
+        if (currentActivityIndex < activities.length - 1) {
+          const currentAct = activities[currentActivityIndex];
+          const nextAct = activities[currentActivityIndex + 1];
+          coordsToRoute = [
+            [currentAct.coordinates.lat, currentAct.coordinates.lon],
+            [nextAct.coordinates.lat, nextAct.coordinates.lon]
+          ];
+        }
       }
       
       if (coordsToRoute.length > 1) {
