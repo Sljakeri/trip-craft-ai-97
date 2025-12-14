@@ -15,54 +15,68 @@ const cleanPerplexityRefs = (text: string): string => {
   return text.replace(/\[\d+\](\[\d+\])*/g, '').trim();
 };
 
-// Fetch route from OSRM (free routing service) with retry logic
-const fetchOSRMRoute = async (coordinates: [number, number][], retries = 2): Promise<[number, number][] | null> => {
+// Fetch route from OSRM (free routing service) - simple single attempt with longer timeout
+const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number, number][] | null> => {
   if (coordinates.length < 2) return null;
   
   // OSRM expects lon,lat format
   const coordString = coordinates.map(c => `${c[1]},${c[0]}`).join(';');
   const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
   
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
-      const response = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      
-      const data = await response.json();
-      
-      if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
-        // Convert from [lon, lat] to [lat, lon] for Leaflet
-        return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
-      }
-      return null;
-    } catch (error) {
-      console.warn(`OSRM routing attempt ${attempt + 1} failed:`, error);
-      if (attempt < retries) {
-        await new Promise(r => setTimeout(r, 500 * (attempt + 1))); // Backoff
-      }
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
+      // Convert from [lon, lat] to [lat, lon] for Leaflet
+      return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
     }
+    return null;
+  } catch (error) {
+    console.warn('OSRM routing failed:', error);
+    return null;
   }
-  return null;
 };
 
-// Fetch routes segment by segment (more reliable for long routes)
-const fetchSegmentedRoutes = async (coordinates: [number, number][]): Promise<[number, number][][]> => {
-  const segments: [number, number][][] = [];
+// Fetch all routes as one request (faster), with fallback to straight lines
+const fetchAllRoutes = async (
+  coordinates: [number, number][], 
+  layerGroup: L.LayerGroup
+): Promise<void> => {
+  if (coordinates.length < 2) return;
   
+  // First, always draw fallback straight lines immediately so something is visible
   for (let i = 0; i < coordinates.length - 1; i++) {
-    const segment = await fetchOSRMRoute([coordinates[i], coordinates[i + 1]], 1);
-    if (segment) {
-      segments.push(segment);
-    } else {
-      // Fallback: straight line for this segment
-      segments.push([coordinates[i], coordinates[i + 1]]);
-    }
+    L.polyline([coordinates[i], coordinates[i + 1]], {
+      color: '#94a3b8', // slate color for fallback
+      weight: 2,
+      opacity: 0.5,
+      dashArray: '6, 6'
+    }).addTo(layerGroup);
   }
   
-  return segments;
+  // Then try to fetch the actual road route
+  try {
+    const routeCoords = await fetchOSRMRoute(coordinates);
+    
+    if (routeCoords && routeCoords.length > 0) {
+      // Clear fallback lines and draw real route
+      layerGroup.eachLayer((layer) => {
+        if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+          layerGroup.removeLayer(layer);
+        }
+      });
+      
+      L.polyline(routeCoords, {
+        color: '#4f46e5',
+        weight: 4,
+        opacity: 0.85
+      }).addTo(layerGroup);
+    }
+  } catch (error) {
+    // Keep fallback lines if OSRM fails
+    console.warn('Route fetch failed, keeping fallback lines');
+  }
 };
 
 interface CrowdScores {
@@ -373,7 +387,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       });
     }
 
-    // Draw routes using OSRM for road-based routing (segment by segment for reliability)
+    // Draw routes using OSRM for road-based routing
     const drawRoutes = async () => {
       if (!routeLayerGroupRef.current) return;
       
@@ -386,22 +400,7 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
       
       if (coordsToRoute.length > 1) {
-        // Fetch routes segment by segment for better reliability
-        const routeSegments = await fetchSegmentedRoutes(coordsToRoute);
-        
-        routeSegments.forEach((segment, index) => {
-          if (!routeLayerGroupRef.current) return;
-          
-          // Check if it's a real route (more than 2 points) or fallback straight line
-          const isRealRoute = segment.length > 2;
-          
-          L.polyline(segment, {
-            color: '#4f46e5',
-            weight: isRealRoute ? 4 : 3,
-            opacity: isRealRoute ? 0.8 : 0.6,
-            dashArray: isRealRoute ? undefined : '8, 8'
-          }).addTo(routeLayerGroupRef.current);
-        });
+        await fetchAllRoutes(coordsToRoute, routeLayerGroupRef.current);
       }
     };
     
