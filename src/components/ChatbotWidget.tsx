@@ -14,12 +14,22 @@ declare global {
 
 const ChatbotWidget = () => {
   useEffect(() => {
+    // Add custom styles to override Voiceglow's inline positioning
+    const style = document.createElement('style');
+    style.textContent = `
+      #VG_OVERLAY_CONTAINER {
+        left: 16px !important;
+        right: unset !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     // Configure the widget
     window.VG_CONFIG = {
       ID: "7293lniv2pgm1czk",
       region: 'eu',
-      render: 'popup', // popup mode for bottom-right corner
-      color: 'light', // Use light theme
+      render: 'popup',
+      color: 'light',
       stylesheets: [
         "https://vg-bunny-cdn.b-cdn.net/vg_live_build/styles.css",
       ],
@@ -38,6 +48,7 @@ const ChatbotWidget = () => {
         container.remove();
       }
       script.remove();
+      style.remove();
     };
   }, []);
 
