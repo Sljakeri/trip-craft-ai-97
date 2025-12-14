@@ -431,6 +431,9 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     mapRef.current.flyTo(coords, 16, { animate: true, duration: 0.8 });
   }, [currentActivity]);
 
+  // Track map initialization state
+  const [mapReady, setMapReady] = useState(false);
+
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -446,19 +449,21 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
     }).addTo(mapRef.current);
 
     routeLayerGroupRef.current = L.layerGroup().addTo(mapRef.current);
+    setMapReady(true);
 
     return () => {
       mapRef.current?.remove();
       mapRef.current = null;
+      setMapReady(false);
     };
   }, [getCenterCoords]);
 
-  // Update markers when day or activity changes
+  // Update markers when day or activity changes - also trigger on mapReady
   useEffect(() => {
-    if (isNewFormat) {
+    if (mapReady && isNewFormat) {
       drawDayMarkers();
     }
-  }, [currentDayIndex, currentActivityIndex, drawDayMarkers, isNewFormat]);
+  }, [mapReady, currentDayIndex, currentActivityIndex, drawDayMarkers, isNewFormat]);
 
   // Navigation handlers
   const handleNextActivity = () => {
