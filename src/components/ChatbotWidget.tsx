@@ -41,7 +41,7 @@ const ChatbotWidget = () => {
     };
   }, []);
 
-  return <div id="VG_OVERLAY_CONTAINER" className="fixed bottom-4 right-4 z-[9999]" />;
+  return <div id="VG_OVERLAY_CONTAINER" className="fixed bottom-4 left-4 z-[9999]" />;
 };
 
 export default ChatbotWidget;
