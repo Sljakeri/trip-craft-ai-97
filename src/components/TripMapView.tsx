@@ -15,7 +15,7 @@ const cleanPerplexityRefs = (text: string): string => {
   return text.replace(/\[\d+\](\[\d+\])*/g, '').trim();
 };
 
-// Fetch route from OSRM (free routing service) - simple single attempt with longer timeout
+// Fetch route from OSRM (free routing service) with timeout
 const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number, number][] | null> => {
   if (coordinates.length < 2) return null;
   
@@ -24,7 +24,13 @@ const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number,
   const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
   
   try {
-    const response = await fetch(url);
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
     const data = await response.json();
     
     if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
@@ -33,43 +39,53 @@ const fetchOSRMRoute = async (coordinates: [number, number][]): Promise<[number,
     }
     return null;
   } catch (error) {
-    console.warn('OSRM routing failed:', error);
+    console.warn('OSRM routing failed, using fallback:', error);
     return null;
   }
 };
 
-// Fetch all routes as one request (faster), with fallback to straight lines
+// Draw fallback dashed lines between coordinates
+const drawFallbackLines = (
+  coordinates: [number, number][], 
+  layerGroup: L.LayerGroup
+): void => {
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    L.polyline([coordinates[i], coordinates[i + 1]], {
+      color: '#4f46e5',
+      weight: 3,
+      opacity: 0.7,
+      dashArray: '10, 8'
+    }).addTo(layerGroup);
+  }
+};
+
+// Fetch all routes as one request (faster), with immediate fallback to straight lines
 const fetchAllRoutes = async (
   coordinates: [number, number][], 
   layerGroup: L.LayerGroup
 ): Promise<void> => {
   if (coordinates.length < 2) return;
   
-  // Try to fetch the actual road route first
+  // ALWAYS draw fallback lines first so something shows immediately
+  drawFallbackLines(coordinates, layerGroup);
+  
+  // Then try to fetch the actual road route
   try {
     const routeCoords = await fetchOSRMRoute(coordinates);
     
     if (routeCoords && routeCoords.length > 0) {
-      // Draw real road route
+      // Clear the fallback lines and draw real road route
+      layerGroup.clearLayers();
       L.polyline(routeCoords, {
         color: '#4f46e5',
         weight: 4,
         opacity: 0.85
       }).addTo(layerGroup);
-      return;
     }
+    // If OSRM fails, keep the fallback lines that are already drawn
   } catch (error) {
-    console.warn('Route fetch failed, using fallback lines');
-  }
-  
-  // Fallback: draw straight dashed lines if OSRM fails
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    L.polyline([coordinates[i], coordinates[i + 1]], {
-      color: '#4f46e5',
-      weight: 3,
-      opacity: 0.6,
-      dashArray: '8, 8'
-    }).addTo(layerGroup);
+    console.warn('Route fetch failed, keeping fallback lines');
+    // Fallback lines are already drawn, so no action needed
   }
 };
 
@@ -357,10 +373,29 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
 
       if (isActive) {
         marker.openPopup();
+        
+        // Add nearby restaurant markers for the active activity
+        if (activity.nearby_context?.dining_spots) {
+          activity.nearby_context.dining_spots.forEach((spot, spotIdx) => {
+            const diningIcon = L.divIcon({
+              className: 'dining-marker',
+              html: `<div style="width:24px;height:24px;border-radius:50%;background:#f97316;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);">🍽️</div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 24],
+              popupAnchor: [0, -24]
+            });
+
+            const diningMarker = L.marker([spot.coordinates.lat, spot.coordinates.lon], { icon: diningIcon })
+              .bindPopup(`<div class="font-bold text-sm text-center text-gray-900">${spot.name}</div><div class="text-xs text-center text-gray-600">${spot.type}</div>`)
+              .addTo(routeLayerGroupRef.current!);
+            
+            diningMarkersRef.current.push(diningMarker);
+          });
+        }
       }
     });
 
-    // Draw routes using OSRM for road-based routing
+    // Draw routes - ALWAYS show fallback lines first, then try OSRM
     const drawRoutes = async () => {
       if (!routeLayerGroupRef.current) return;
       
@@ -368,13 +403,30 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
         // In "all" view, show full route connecting all activities
         const coordsToRoute = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
         if (coordsToRoute.length > 1) {
-          await fetchAllRoutes(coordsToRoute, routeLayerGroupRef.current);
+          // Draw fallback immediately
+          drawFallbackLines(coordsToRoute, routeLayerGroupRef.current);
+          
+          // Try to get real route (will upgrade if successful)
+          try {
+            const routeCoords = await fetchOSRMRoute(coordsToRoute);
+            if (routeCoords && routeCoords.length > 0 && routeLayerGroupRef.current) {
+              // Remove fallback lines and add real route
+              // We need to redraw markers since we can't selectively remove polylines
+              // For now, just add the real route on top
+              L.polyline(routeCoords, {
+                color: '#4f46e5',
+                weight: 5,
+                opacity: 0.9
+              }).addTo(routeLayerGroupRef.current);
+            }
+          } catch {
+            // Keep fallback lines
+          }
         }
       } else if (currentDay && currentDay.activities.length > 1) {
-        // In day-by-day view, ONLY show route from current activity to next activity
+        // In day-by-day view, show route from current activity to next activity
         const activities = currentDay.activities;
         
-        // Only draw if there's a next activity
         if (currentActivityIndex < activities.length - 1) {
           const fromAct = activities[currentActivityIndex];
           const toAct = activities[currentActivityIndex + 1];
@@ -383,32 +435,27 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
             [toAct.coordinates.lat, toAct.coordinates.lon]
           ];
           
+          // ALWAYS draw fallback line first
+          L.polyline(coords, {
+            color: '#4f46e5',
+            weight: 3,
+            opacity: 0.7,
+            dashArray: '10, 8'
+          }).addTo(routeLayerGroupRef.current!);
+          
+          // Then try to upgrade to real route
           try {
             const routeCoords = await fetchOSRMRoute(coords);
-            if (routeCoords && routeCoords.length > 0) {
-              // Draw road-based route
+            if (routeCoords && routeCoords.length > 0 && routeLayerGroupRef.current) {
+              // Add real route on top of fallback
               L.polyline(routeCoords, {
                 color: '#4f46e5',
                 weight: 5,
-                opacity: 0.85
-              }).addTo(routeLayerGroupRef.current!);
-            } else {
-              // Fallback to straight line if OSRM fails
-              L.polyline(coords, {
-                color: '#4f46e5',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '10, 6'
-              }).addTo(routeLayerGroupRef.current!);
+                opacity: 0.9
+              }).addTo(routeLayerGroupRef.current);
             }
           } catch {
-            // Fallback to straight line on error
-            L.polyline(coords, {
-              color: '#4f46e5',
-              weight: 4,
-              opacity: 0.7,
-              dashArray: '10, 6'
-            }).addTo(routeLayerGroupRef.current!);
+            // Keep fallback line
           }
         }
       }
