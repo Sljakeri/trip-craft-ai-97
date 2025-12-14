@@ -1,92 +1,87 @@
-import { Check } from "lucide-react";
+import { Zap, Sparkles } from "lucide-react";
 import Layout from "@/components/Layout";
-import { useToast } from "@/hooks/use-toast";
+import { PricingSection } from "@/components/ui/pricing-section";
+
+const defaultTiers = [
+  {
+    name: "Starter",
+    price: {
+      monthly: 15,
+      yearly: 144,
+    },
+    description: "Perfect for individuals and small trips",
+    icon: (
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-500/30 to-gray-500/30 blur-2xl rounded-full" />
+        <Zap className="w-7 h-7 relative z-10 text-gray-500 dark:text-gray-400" />
+      </div>
+    ),
+    features: [
+      {
+        name: "Basic Trip Planning",
+        description: "Plan up to 3 trips per month",
+        included: true,
+      },
+      {
+        name: "Crowd Insights",
+        description: "Basic crowd level predictions",
+        included: true,
+      },
+      {
+        name: "Email Support",
+        description: "Get help within 24 hours",
+        included: true,
+      },
+      {
+        name: "AI Chat Assistant",
+        description: "24/7 AI-powered travel assistance",
+        included: false,
+      },
+    ],
+  },
+  {
+    name: "Pro",
+    price: {
+      monthly: 49,
+      yearly: 470,
+    },
+    description: "Ideal for frequent travelers and families",
+    highlight: true,
+    badge: "Most Popular",
+    icon: (
+      <div className="relative">
+        <Sparkles className="w-7 h-7 relative z-10" />
+      </div>
+    ),
+    features: [
+      {
+        name: "Unlimited Trip Planning",
+        description: "Plan as many trips as you want",
+        included: true,
+      },
+      {
+        name: "Advanced Crowd Analytics",
+        description: "Real-time crowd predictions & alerts",
+        included: true,
+      },
+      {
+        name: "Priority Support",
+        description: "24/7 priority email and chat support",
+        included: true,
+      },
+      {
+        name: "AI Chat Assistant",
+        description: "Personal AI travel concierge",
+        included: true,
+      },
+    ],
+  },
+];
 
 const Premium = () => {
-  const { toast } = useToast();
-
-  const handleSelectPlan = (plan: string) => {
-    toast({
-      title: "Plan Selected",
-      description: `${plan} plan selection coming soon!`,
-    });
-  };
-
-  const plans = [
-    {
-      name: "Explorer",
-      price: "Free",
-      priceNote: "",
-      features: [
-        "1 Trip per month",
-        "Basic AI Suggestions",
-        "Email Support",
-      ],
-      buttonText: "Select Free",
-      buttonClass: "transport-btn w-full justify-center",
-      popular: false,
-    },
-    {
-      name: "Voyager",
-      price: "$12",
-      priceNote: "/mo",
-      features: [
-        "Unlimited Trips",
-        "Advanced AI Customization",
-        "24/7 AI Chat Assistant",
-      ],
-      buttonText: "Go Pro",
-      buttonClass: "confirm-btn",
-      popular: true,
-    },
-    {
-      name: "Enterprise",
-      price: "Contact",
-      priceNote: "",
-      features: [
-        "Team Collaboration",
-        "Custom AI Training",
-        "Dedicated Account Manager",
-      ],
-      buttonText: "Contact Sales",
-      buttonClass: "transport-btn w-full justify-center",
-      popular: false,
-    },
-  ];
-
   return (
     <Layout>
-      <div className="content-wrapper">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Choose Your Plan</h1>
-        <p className="text-secondary mb-8">Unlock the full potential of AI travel.</p>
-        
-        <div className="pricing-grid">
-          {plans.map((plan, index) => (
-            <div key={index} className={`pricing-card ${plan.popular ? "popular" : ""}`}>
-              {plan.popular && <div className="badge">Most Popular</div>}
-              <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-              <div className="price">
-                {plan.price}
-                {plan.priceNote && <span>{plan.priceNote}</span>}
-              </div>
-              <ul className="list-none text-left mb-8 space-y-3">
-                {plan.features.map((feature, fIndex) => (
-                  <li key={fIndex} className="flex items-center gap-2 text-foreground">
-                    <Check className="h-5 w-5 text-secondary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleSelectPlan(plan.name)}
-                className={plan.buttonClass}
-              >
-                {plan.buttonText}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <PricingSection tiers={defaultTiers} />
     </Layout>
   );
 };
