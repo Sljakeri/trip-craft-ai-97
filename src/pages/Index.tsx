@@ -195,8 +195,8 @@ const HeroSection = () => (
         <span className="text-primary">Not the Crowd.</span>
       </h1>
       <p className="text-balance lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-        Our AI predicts crowd levels in real-time to build itineraries that optimize for peace, privacy, and authentic
-        experiences.
+        Our AI plans trips, predicts crowd levels in real-time, builds itineraries that optimize for peace, privacy, and
+        authentic experiences.
       </p>
     </div>
 
