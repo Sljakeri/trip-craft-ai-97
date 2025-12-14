@@ -360,8 +360,8 @@ const Index = () => {
     setTripResults(null);
 
     try {
-      // First webhook: Get trip itinerary data
-      console.log("Calling first webhook (itinerary)...");
+      // Webhook: Get complete trip data (itinerary + expenses)
+      console.log("Calling webhook...");
       const response = await fetch("https://bubatron28.app.n8n.cloud/webhook/bb609b3a-9f45", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -370,34 +370,13 @@ const Index = () => {
 
       if (!response.ok) throw new Error("Service unavailable");
 
-      const itineraryData = await response.json();
-      console.log("Itinerary data received:", itineraryData);
+      const tripData_response = await response.json();
+      console.log("Trip data received:", tripData_response);
 
-      // Second webhook: Get travel prices/expenses data
-      console.log("Calling second webhook (prices)...", tripData);
-      const pricesResponse = await fetch("https://bubatron28.app.n8n.cloud/webhook/73f28d9f-3738-4e5c", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tripData),
-      });
-
-      if (!pricesResponse.ok) throw new Error("Prices service unavailable");
-
-      const pricesData = await pricesResponse.json();
-      console.log("Prices data received:", pricesData);
-
-      // Merge both responses into trip results
-      const mergedData = {
-        ...itineraryData,
-        budget_analysis: pricesData.budget_analysis,
-        logistics_summary: pricesData.logistics_summary,
-        flight_details: pricesData.flight_details,
-        accommodation_plan: pricesData.accommodation_plan,
-        dining_manifest: pricesData.dining_manifest,
-      };
-
-      console.log("Merged data:", mergedData);
-      setTripResults(mergedData);
+      // The webhook returns complete data including:
+      // - trip_overview, local_logistics, daily_itinerary (itinerary data)
+      // - budget_analysis, logistics_summary, flight_details, accommodation_plan, dining_manifest (expense data)
+      setTripResults(tripData_response);
     } catch (error) {
       console.error("Error:", error);
       toast({
