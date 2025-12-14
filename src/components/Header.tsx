@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sparkles, ArrowUp, Info, Crown, Headphones, User, UserPlus, LogOut } from "lucide-react";
+import { Menu, X, ArrowUp, Info, Crown, Headphones, User, UserPlus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
@@ -44,9 +45,7 @@ const Header = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight mr-4 hover:opacity-80 transition-opacity text-foreground">
-          <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
-            <Sparkles size={18} />
-          </div>
+          <img src={logo} alt="NexTravel" className="h-8 w-auto" />
           NexTravel
         </Link>
 
