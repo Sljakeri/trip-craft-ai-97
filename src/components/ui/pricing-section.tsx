@@ -33,33 +33,6 @@ interface PricingSectionProps {
 function PricingSection({ tiers, className }: PricingSectionProps) {
   const [isYearly, setIsYearly] = useState(false)
 
-  const buttonStyles = {
-    default: cn(
-      "h-12 bg-white dark:bg-zinc-900",
-      "hover:bg-zinc-50 dark:hover:bg-zinc-800",
-      "text-zinc-900 dark:text-zinc-100",
-      "border border-zinc-200 dark:border-zinc-800",
-      "hover:border-zinc-300 dark:hover:border-zinc-700",
-      "shadow-sm hover:shadow-md",
-      "text-sm font-medium",
-    ),
-    highlight: cn(
-      "h-12 bg-zinc-900 dark:bg-zinc-100",
-      "hover:bg-zinc-800 dark:hover:bg-zinc-300",
-      "text-white dark:text-zinc-900",
-      "shadow-[0_1px_15px_rgba(0,0,0,0.1)]",
-      "hover:shadow-[0_1px_20px_rgba(0,0,0,0.15)]",
-      "font-semibold text-base",
-    ),
-  }
-
-  const badgeStyles = cn(
-    "px-4 py-1.5 text-sm font-medium",
-    "bg-zinc-900 dark:bg-zinc-100",
-    "text-white dark:text-zinc-900",
-    "border-none shadow-lg",
-  )
-
   return (
     <section
       className={cn(
@@ -71,10 +44,10 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
     >
       <div className="w-full max-w-5xl mx-auto">
         <div className="flex flex-col items-center gap-4 mb-12">
-          <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-3xl font-bold text-foreground">
             Simple, transparent pricing
           </h2>
-          <div className="inline-flex items-center p-1.5 bg-white dark:bg-zinc-800/50 rounded-full border border-zinc-200 dark:border-zinc-700 shadow-sm">
+          <div className="inline-flex items-center p-1.5 bg-card rounded-full border border-border shadow-sm">
             {["Monthly", "Yearly"].map((period) => (
               <button
                 key={period}
@@ -82,8 +55,8 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
                 className={cn(
                   "px-8 py-2.5 text-sm font-medium rounded-full transition-all duration-300",
                   (period === "Yearly") === isYearly
-                    ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-lg"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100",
+                    ? "bg-foreground text-background shadow-lg"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {period}
@@ -101,18 +74,20 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
                 "rounded-3xl transition-all duration-300",
                 "flex flex-col",
                 tier.highlight
-                  ? "bg-gradient-to-b from-zinc-100/80 to-transparent dark:from-zinc-400/[0.15]"
-                  : "bg-white dark:bg-zinc-800/50",
+                  ? "bg-foreground text-background"
+                  : "bg-card",
                 "border",
                 tier.highlight
-                  ? "border-zinc-400/50 dark:border-zinc-400/20 shadow-xl"
-                  : "border-zinc-200 dark:border-zinc-700 shadow-md",
-                "hover:translate-y-0 hover:shadow-lg",
+                  ? "border-foreground shadow-xl"
+                  : "border-border shadow-md",
+                "hover:shadow-lg",
               )}
             >
               {tier.badge && tier.highlight && (
                 <div className="absolute -top-4 left-6">
-                  <Badge className={badgeStyles}>{tier.badge}</Badge>
+                  <Badge className="px-4 py-1.5 text-sm font-medium bg-card text-foreground border-none shadow-lg">
+                    {tier.badge}
+                  </Badge>
                 </div>
               )}
 
@@ -122,27 +97,39 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
                     className={cn(
                       "p-3 rounded-xl",
                       tier.highlight
-                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400",
+                        ? "bg-background/10"
+                        : "bg-secondary",
                     )}
                   >
                     {tier.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                  <h3 className={cn(
+                    "text-xl font-semibold",
+                    tier.highlight ? "text-background" : "text-foreground"
+                  )}>
                     {tier.name}
                   </h3>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
+                    <span className={cn(
+                      "text-4xl font-bold",
+                      tier.highlight ? "text-background" : "text-foreground"
+                    )}>
                       ${isYearly ? tier.price.yearly : tier.price.monthly}
                     </span>
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                    <span className={cn(
+                      "text-sm",
+                      tier.highlight ? "text-background/70" : "text-muted-foreground"
+                    )}>
                       /{isYearly ? "year" : "month"}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className={cn(
+                    "mt-2 text-sm",
+                    tier.highlight ? "text-background/70" : "text-muted-foreground"
+                  )}>
                     {tier.description}
                   </p>
                 </div>
@@ -154,17 +141,23 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
                         className={cn(
                           "mt-1 p-0.5 rounded-full transition-colors duration-200",
                           feature.included
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-zinc-400 dark:text-zinc-600",
+                            ? tier.highlight ? "text-emerald-400" : "text-emerald-600"
+                            : tier.highlight ? "text-background/40" : "text-muted-foreground",
                         )}
                       >
                         <Check className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        <div className={cn(
+                          "text-sm font-medium",
+                          tier.highlight ? "text-background" : "text-foreground"
+                        )}>
                           {feature.name}
                         </div>
-                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className={cn(
+                          "text-sm",
+                          tier.highlight ? "text-background/70" : "text-muted-foreground"
+                        )}>
                           {feature.description}
                         </div>
                       </div>
@@ -176,10 +169,10 @@ function PricingSection({ tiers, className }: PricingSectionProps) {
               <div className="p-8 pt-0 mt-auto">
                 <Button
                   className={cn(
-                    "w-full relative transition-all duration-300",
+                    "w-full h-12 relative transition-all duration-300 font-semibold",
                     tier.highlight
-                      ? buttonStyles.highlight
-                      : buttonStyles.default,
+                      ? "bg-card text-foreground hover:bg-card/90 shadow-lg"
+                      : "bg-foreground text-background hover:bg-foreground/90",
                   )}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
