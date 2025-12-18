@@ -200,6 +200,23 @@ const HeroSection = () => (
       </p>
     </div>
 
+    <div className="mx-auto mt-10 flex w-fit flex-col items-center gap-4 sm:flex-row mb-12">
+      <span className="mx-4 inline-flex items-center -space-x-4">
+        {reviews.avatars.map((avatar, index) => (
+          <Avatar key={index} className="h-14 w-14 border-2 border-card">
+            <AvatarImage src={avatar.src} alt={avatar.alt} />
+          </Avatar>
+        ))}
+      </span>
+      <div>
+        <div className="flex items-center gap-1 justify-center sm:justify-start">
+          {[...Array(5)].map((_, index) => (
+            <Star key={index} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+          ))}
+        </div>
+        <p className="text-left font-medium text-muted-foreground text-sm">from {reviews.count}+ happy travelers</p>
+      </div>
+    </div>
   </div>
 );
 
