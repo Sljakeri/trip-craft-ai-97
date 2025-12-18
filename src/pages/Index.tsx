@@ -63,10 +63,10 @@ const MAJOR_CITIES = [
 const reviews = {
   count: 4,
   avatars: [
-    { src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&q=80&fit=crop", alt: "User 1" },
-    { src: "https://i.imgur.com/wOJ1IIO.jpeg", alt: "User 2" },
-    { src: "https://i.imgur.com/h5i7Up8.jpeg", alt: "User 3" },
-    { src: "https://i.imgur.com/V6wrbmT.jpeg", alt: "User 4" },
+    { src: "https://randomuser.me/api/portraits/women/44.jpg", alt: "User 1" },
+    { src: "https://randomuser.me/api/portraits/men/32.jpg", alt: "User 2" },
+    { src: "https://randomuser.me/api/portraits/women/68.jpg", alt: "User 3" },
+    { src: "https://randomuser.me/api/portraits/men/75.jpg", alt: "User 4" },
   ],
 };
 

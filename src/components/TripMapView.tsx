@@ -395,32 +395,21 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
       }
     });
 
-    // Draw routes - ALWAYS show fallback lines first, then try OSRM
-    const drawRoutes = async () => {
+    // Draw routes - use dotted lines only (simple and reliable)
+    const drawRoutes = () => {
       if (!routeLayerGroupRef.current) return;
       
       if (currentDayIndex === 'all') {
-        // In "all" view, show full route connecting all activities
+        // In "all" view, show full route connecting all activities with dotted lines
         const coordsToRoute = allActivities.map(a => [a.coordinates.lat, a.coordinates.lon] as [number, number]);
         if (coordsToRoute.length > 1) {
-          // Draw fallback immediately
-          drawFallbackLines(coordsToRoute, routeLayerGroupRef.current);
-          
-          // Try to get real route (will upgrade if successful)
-          try {
-            const routeCoords = await fetchOSRMRoute(coordsToRoute);
-            if (routeCoords && routeCoords.length > 0 && routeLayerGroupRef.current) {
-              // Remove fallback lines and add real route
-              // We need to redraw markers since we can't selectively remove polylines
-              // For now, just add the real route on top
-              L.polyline(routeCoords, {
-                color: '#4f46e5',
-                weight: 5,
-                opacity: 0.9
-              }).addTo(routeLayerGroupRef.current);
-            }
-          } catch {
-            // Keep fallback lines
+          for (let i = 0; i < coordsToRoute.length - 1; i++) {
+            L.polyline([coordsToRoute[i], coordsToRoute[i + 1]], {
+              color: '#4f46e5',
+              weight: 3,
+              opacity: 0.8,
+              dashArray: '8, 6'
+            }).addTo(routeLayerGroupRef.current!);
           }
         }
       } else if (currentDay && currentDay.activities.length > 1) {
@@ -435,28 +424,12 @@ const TripMapView: React.FC<TripMapViewProps> = ({ data, onNewTrip, destinationC
             [toAct.coordinates.lat, toAct.coordinates.lon]
           ];
           
-          // ALWAYS draw fallback line first
           L.polyline(coords, {
             color: '#4f46e5',
-            weight: 3,
-            opacity: 0.7,
-            dashArray: '10, 8'
+            weight: 4,
+            opacity: 0.8,
+            dashArray: '8, 6'
           }).addTo(routeLayerGroupRef.current!);
-          
-          // Then try to upgrade to real route
-          try {
-            const routeCoords = await fetchOSRMRoute(coords);
-            if (routeCoords && routeCoords.length > 0 && routeLayerGroupRef.current) {
-              // Add real route on top of fallback
-              L.polyline(routeCoords, {
-                color: '#4f46e5',
-                weight: 5,
-                opacity: 0.9
-              }).addTo(routeLayerGroupRef.current);
-            }
-          } catch {
-            // Keep fallback line
-          }
         }
       }
     };
